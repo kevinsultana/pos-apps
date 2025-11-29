@@ -11,7 +11,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
-import MenuIcon from '../assets/svg/MenuIcon';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 // Responsive sizes (use sensible fallbacks)
 const COLLAPSED_WIDTH = wp(5);
@@ -23,6 +23,7 @@ export default function PersistentSidebar({
   items = [],
   navigation,
   initialCollapsed = false,
+  currentRoute = '',
 }) {
   const [collapsed, setCollapsed] = useState(initialCollapsed);
   const widthAnim = useRef(
@@ -40,7 +41,7 @@ export default function PersistentSidebar({
   const onPressItem = item => {
     if (typeof item.onPress === 'function') item.onPress();
     else if (navigation && item.screen)
-      navigation.navigate(item.screen, item.params);
+      navigation.replace(item.screen, item.params);
   };
 
   return (
@@ -55,27 +56,46 @@ export default function PersistentSidebar({
           onPress={() => setCollapsed(v => !v)}
           style={styles.toggleBtn}
         >
-          <MenuIcon size={24} color="#111" />
+          <Ionicons name="menu" size={24} color="#111" />
         </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.items}>
-        {items.map((it, idx) => (
-          <TouchableOpacity
-            key={it.key ?? `${idx}-${String(it.label)}`}
-            style={styles.itemRow}
-            onPress={() => onPressItem(it)}
-          >
-            <View style={styles.iconWrap}>
-              {it.icon ? it.icon : <MenuIcon />}
-            </View>
-            {!collapsed && (
-              <Text numberOfLines={1} style={styles.itemLabel}>
-                {it.label}
-              </Text>
-            )}
-          </TouchableOpacity>
-        ))}
+        {items.map((it, idx) => {
+          const isActive = currentRoute === it.screen;
+          return (
+            <TouchableOpacity
+              key={it.key ?? `${idx}-${String(it.label)}`}
+              style={styles.itemRow}
+              onPress={() => onPressItem(it)}
+            >
+              <View style={styles.iconWrap}>
+                {it.icon ? (
+                  React.cloneElement(it.icon, {
+                    color: isActive ? '#111' : '#999',
+                  })
+                ) : (
+                  <Ionicons
+                    name="ellipse"
+                    size={24}
+                    color={isActive ? '#111' : '#999'}
+                  />
+                )}
+              </View>
+              {!collapsed && (
+                <Text
+                  numberOfLines={1}
+                  style={[
+                    styles.itemLabel,
+                    { color: isActive ? '#111' : '#999' },
+                  ]}
+                >
+                  {it.label}
+                </Text>
+              )}
+            </TouchableOpacity>
+          );
+        })}
       </ScrollView>
 
       <View style={styles.bottomFill} />

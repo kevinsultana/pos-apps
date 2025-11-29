@@ -1,18 +1,38 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import PersistentSidebar from './PersistentSidebar';
-import HomeIcon from '../assets/svg/HomeIcon';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 
-export default function AppLayout({ children, navigation }) {
+export default function AppLayout({ children, navigation, route }) {
+  const currentRoute = route?.name || '';
+
   const sidebarItems = [
-    { label: 'Home', screen: 'Home', icon: <HomeIcon /> },
-    { label: 'Details', screen: 'Details', params: { itemId: 99 } },
-    { label: 'Logout', onPress: () => console.log('Logout pressed') },
+    {
+      label: 'Home',
+      screen: 'Home',
+      icon: <Ionicons name="home" size={24} />,
+    },
+    {
+      label: 'Details',
+      screen: 'Details',
+      params: { itemId: 99 },
+      icon: <Ionicons name="document-text" size={24} />,
+    },
+    {
+      label: 'Logout',
+      onPress: () => console.log('Logout pressed'),
+      icon: <Ionicons name="log-out" size={24} />,
+    },
   ];
   return (
     <View style={styles.root}>
-      <PersistentSidebar items={sidebarItems} navigation={navigation} />
+      <PersistentSidebar
+        items={sidebarItems}
+        navigation={navigation}
+        currentRoute={currentRoute}
+        initialCollapsed={true}
+      />
       <View style={styles.content} pointerEvents="box-none">
         {children}
       </View>
