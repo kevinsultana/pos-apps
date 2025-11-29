@@ -23,13 +23,18 @@ import MasterSatuanEdit from '../screens/Master/MasterSatuanEdit';
 import MasterPayment from '../screens/Master/MasterPayment';
 import MasterPaymentCreate from '../screens/Master/MasterPaymentCreate';
 import MasterPaymentEdit from '../screens/Master/MasterPaymentEdit';
+import ReportScreen from '../screens/ReportScreen';
+import ReportPenjualan from '../screens/Report/ReportPenjualan';
+import ReportStok from '../screens/Report/ReportStok';
+import ReportPengeluaran from '../screens/Report/ReportPengeluaran';
+import ReportPiutang from '../screens/Report/ReportPiutang';
 
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigator() {
   return (
     <Stack.Navigator
-      initialRouteName="Login"
+      initialRouteName="Home"
       screenOptions={{ headerShown: false }}
     >
       <Stack.Screen name="Login" component={LoginScreen} />
@@ -73,6 +78,11 @@ export default function AppNavigator() {
         component={MasterPaymentCreate}
       />
       <Stack.Screen name="MasterPaymentEdit" component={MasterPaymentEdit} />
+      <Stack.Screen name="Report" component={ReportScreen} />
+      <Stack.Screen name="ReportPenjualan" component={ReportPenjualan} />
+      <Stack.Screen name="ReportStok" component={ReportStok} />
+      <Stack.Screen name="ReportPengeluaran" component={ReportPengeluaran} />
+      <Stack.Screen name="ReportPiutang" component={ReportPiutang} />
     </Stack.Navigator>
   );
 }
