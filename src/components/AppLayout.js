@@ -27,7 +27,7 @@ export default function AppLayout({ children, navigation, route }) {
     },
     {
       label: 'Logout',
-      onPress: () => console.log('Logout pressed'),
+      onPress: () => navigation.replace('Login'),
       icon: <Ionicons name="log-out" size={24} />,
     },
   ];
