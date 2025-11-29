@@ -9,8 +9,6 @@ import {
 import AppLayout from '../components/AppLayout';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-const PRIMARY = '#1E88E5';
-
 export default function ReportScreen({ navigation, route }) {
   const reportMenus = [
     {

@@ -30,6 +30,13 @@ export default function PersistentSidebar({
     new Animated.Value(initialCollapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH),
   ).current;
 
+  // Dummy data user & toko (nanti bisa dari context/props)
+  const userData = {
+    name: 'Admin Kasir',
+    role: 'Administrator',
+    storeName: 'Toko Sejahtera',
+  };
+
   useEffect(() => {
     Animated.timing(widthAnim, {
       toValue: collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH,
@@ -58,6 +65,27 @@ export default function PersistentSidebar({
         >
           <Ionicons name="menu" size={24} color="#111" />
         </TouchableOpacity>
+        {!collapsed && (
+          <View style={styles.userInfo}>
+            <View style={styles.avatarCircle}>
+              <Ionicons name="person" size={20} color="#2196F3" />
+            </View>
+            <View style={styles.userTexts}>
+              <Text style={styles.userName} numberOfLines={1}>
+                {userData.name}
+              </Text>
+              <Text style={styles.userRole} numberOfLines={1}>
+                {userData.role}
+              </Text>
+              <View style={styles.storeRow}>
+                <Ionicons name="storefront-outline" size={12} color="#64748b" />
+                <Text style={styles.storeName} numberOfLines={1}>
+                  {userData.storeName}
+                </Text>
+              </View>
+            </View>
+          </View>
+        )}
       </View>
 
       <ScrollView contentContainerStyle={styles.items}>
@@ -124,10 +152,15 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
   },
   topRow: {
-    height: TOP_ROW_HEIGHT,
+    height: 'auto',
+    minHeight: TOP_ROW_HEIGHT,
     alignItems: 'flex-start',
     justifyContent: 'center',
     marginLeft: 8,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e6e6e6',
+    marginBottom: 8,
   },
   toggleBtn: {
     width: wp(4),
@@ -135,6 +168,49 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 8,
+  },
+  userInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+    paddingVertical: 6,
+    width: '100%',
+  },
+  avatarCircle: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: '#E3F2FD',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  userTexts: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  userName: {
+    fontSize: hp(2.5),
+    fontWeight: '700',
+    color: '#1e293b',
+    marginBottom: 2,
+  },
+  userRole: {
+    fontSize: hp(2),
+    fontWeight: '500',
+    color: '#64748b',
+    marginBottom: 4,
+  },
+  storeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  storeName: {
+    fontSize: hp(2),
+    color: '#64748b',
+    fontStyle: 'italic',
   },
   items: { paddingVertical: 8 },
   itemRow: {

@@ -16,6 +16,11 @@ export default function AppLayout({ children, navigation, route }) {
       icon: <MaterialCommunityIcons name="cash-register" size={24} />,
     },
     {
+      label: 'Sales',
+      screen: 'Sales',
+      icon: <MaterialCommunityIcons name="receipt" size={24} />,
+    },
+    {
       label: 'Master',
       screen: 'Master',
       icon: <Ionicons name="apps" size={24} />,

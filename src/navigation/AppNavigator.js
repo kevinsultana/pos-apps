@@ -28,6 +28,7 @@ import ReportPenjualan from '../screens/Report/ReportPenjualan';
 import ReportStok from '../screens/Report/ReportStok';
 import ReportPengeluaran from '../screens/Report/ReportPengeluaran';
 import ReportPiutang from '../screens/Report/ReportPiutang';
+import SalesScreen from '../screens/SalesScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -41,6 +42,7 @@ export default function AppNavigator() {
       <Stack.Screen name="Register" component={RegisterScreen} />
       <Stack.Screen name="Home" component={HomeScreen} />
       <Stack.Screen name="Pos" component={PosScreen} />
+      <Stack.Screen name="Sales" component={SalesScreen} />
       <Stack.Screen name="Master" component={MasterScreen} />
       <Stack.Screen name="MasterProduct" component={MasterProduct} />
       <Stack.Screen name="MasterProductEdit" component={MasterProductEdit} />
