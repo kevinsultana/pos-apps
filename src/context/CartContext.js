@@ -93,7 +93,8 @@ export const CartProvider = ({ children }) => {
   };
 
   const getTotal = () => {
-    return getSubTotal() + getTax() - getDiscount();
+    // Simple total: only sum of item prices × quantities, no tax or discount
+    return getSubTotal();
   };
 
   const getTotalItems = () => {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -19,17 +19,23 @@ import { useCart } from '../context/CartContext';
 
 export default function HomeScreen({ navigation, route }) {
   const [searchText, setSearchText] = useState('');
+  const receiptListRef = useRef(null);
+
   const {
     cartItems,
     addToCart,
     removeFromCart,
     increaseQuantity,
     decreaseQuantity,
-    getSubTotal,
-    getTax,
-    getDiscount,
     getTotal,
   } = useCart();
+
+  // Auto-scroll to bottom when cart items change
+  useEffect(() => {
+    if (cartItems.length > 0 && receiptListRef.current) {
+      receiptListRef.current.scrollToEnd({ animated: true });
+    }
+  }, [cartItems.length]);
 
   const dummyProducts = [
     { id: 1, name: 'Kopi Hitam', price: 8000, category: 'Minuman', stock: 50 },
@@ -88,7 +94,7 @@ export default function HomeScreen({ navigation, route }) {
   return (
     <AppLayout navigation={navigation} route={route} headerTitle="Home">
       <View style={styles.container}>
-        <HeaderPos />
+        {/* <HeaderPos /> */}
 
         {/* grid component */}
         <View style={styles.gridContainer}>
@@ -96,6 +102,7 @@ export default function HomeScreen({ navigation, route }) {
           <View style={styles.receiptContainer}>
             {/* FlatList with extra bottom padding so items don't hide behind the sticky footer */}
             <FlatList
+              ref={receiptListRef}
               data={cartItems}
               keyExtractor={(item, idx) => String(idx)}
               contentContainerStyle={styles.receiptListContent}
@@ -108,66 +115,48 @@ export default function HomeScreen({ navigation, route }) {
               }
               renderItem={({ item }) => (
                 <View style={styles.receiptItem}>
-                  <View style={styles.receiptItemInfo}>
+                  <View style={styles.receiptLeft}>
                     <Text style={styles.receiptItemName}>{item.name}</Text>
-                    <Text style={styles.receiptItemQty}>x{item.quantity}</Text>
-                  </View>
-                  <View style={styles.receiptItemActions}>
-                    <Text style={styles.receiptItemPrice}>
-                      Rp {(item.price * item.quantity).toLocaleString('id-ID')}
+                    <Text style={styles.receiptItemSub}>
+                      x{item.quantity} • Rp{' '}
+                      {(item.price * item.quantity).toLocaleString('id-ID')}
                     </Text>
-                    <View style={styles.receiptItemButtons}>
-                      <TouchableOpacity
-                        onPress={() => decreaseQuantity(item.id)}
-                        style={styles.qtyButton}
-                      >
-                        <Ionicons name="remove" size={hp(2)} color="#fff" />
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        onPress={() => increaseQuantity(item.id)}
-                        style={styles.qtyButton}
-                      >
-                        <Ionicons name="add" size={hp(2)} color="#fff" />
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        onPress={() => removeFromCart(item.id)}
-                        style={styles.deleteButton}
-                      >
-                        <Ionicons name="trash" size={hp(2)} color="#fff" />
-                      </TouchableOpacity>
-                    </View>
+                  </View>
+                  <View style={styles.receiptActions}>
+                    <TouchableOpacity
+                      onPress={() => decreaseQuantity(item.id)}
+                      style={styles.actionButton}
+                    >
+                      <Ionicons name="remove" size={hp(2.4)} color="#fff" />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => increaseQuantity(item.id)}
+                      style={styles.actionButton}
+                    >
+                      <Ionicons name="add" size={hp(2.4)} color="#fff" />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => removeFromCart(item.id)}
+                      style={styles.actionDelete}
+                    >
+                      <Ionicons name="trash" size={hp(2.4)} color="#fff" />
+                    </TouchableOpacity>
                   </View>
                 </View>
               )}
             />
 
-            {/* Sticky footer (subtotal / totals) */}
+            {/* Simple footer: item count + total only */}
             <View style={styles.receiptFooter}>
-              <View style={styles.summaryRowFirst}>
-                <Text>Sub Total</Text>
-                <Text>Rp {getSubTotal().toLocaleString('id-ID')}</Text>
-              </View>
-              <View style={styles.summaryRow}>
-                <Text>Discount</Text>
-                <Text>Rp {getDiscount().toLocaleString('id-ID')}</Text>
-              </View>
-              <View style={styles.summaryRow}>
-                <Text>Tax (10%)</Text>
-                <Text>Rp {getTax().toLocaleString('id-ID')}</Text>
-              </View>
-              <View style={styles.summaryRowFirst}>
-                <Text style={styles.totalLabel}>Total :</Text>
-                <Text style={styles.totalValue}>
-                  Rp {getTotal().toLocaleString('id-ID')}
+              <View style={styles.footerRow}>
+                <Text style={styles.footerItems}>
+                  Items: {cartItems.reduce((sum, i) => sum + i.quantity, 0)}
                 </Text>
+                <Text style={styles.footerTotalLabel}>Total</Text>
               </View>
-            </View>
-
-            {/* bottom button */}
-            <View style={styles.receiptBottomButtons}>
-              <Text>Button</Text>
-              <Text>Button</Text>
-              <Text>Button</Text>
+              <Text style={styles.footerTotalValue}>
+                Rp {getTotal().toLocaleString('id-ID')}
+              </Text>
             </View>
           </View>
 
@@ -228,13 +217,20 @@ export default function HomeScreen({ navigation, route }) {
                 )}
               />
             </View>
-            <View style={styles.productsBottomBar}>
-              <View style={styles.productsBottomButtons}>
-                <Text>Button</Text>
-                <Text>Button</Text>
-                <Text>Button</Text>
-              </View>
-            </View>
+            {/* Floating action button to proceed to payment, shown when cart has items */}
+            {cartItems && cartItems.length > 0 && (
+              <TouchableOpacity
+                style={styles.floatingButton}
+                onPress={() => navigation.navigate('Pos')}
+                activeOpacity={0.85}
+              >
+                <Ionicons
+                  name="arrow-forward-circle"
+                  size={hp(4)}
+                  color="#fff"
+                />
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </View>
@@ -246,16 +242,25 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     width: wp(95),
+    backgroundColor: '#f5f5f5',
   },
   gridContainer: {
     flex: 1,
     flexDirection: 'row',
+    gap: wp(1),
   },
   receiptContainer: {
     flex: 1,
-    backgroundColor: 'green',
-    height: hp(90),
+    backgroundColor: '#fff',
     position: 'relative',
+    borderRadius: hp(1),
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    flexDirection: 'column',
   },
   receiptList: {
     flex: 1,
@@ -264,56 +269,47 @@ const styles = StyleSheet.create({
     paddingBottom: hp(2),
   },
   receiptItem: {
-    flexDirection: 'column',
-    paddingVertical: hp(1),
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: hp(1.5),
     paddingHorizontal: wp(2),
     borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
+    borderBottomColor: '#f0f0f0',
+    backgroundColor: '#fff',
   },
-  receiptItemInfo: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: hp(0.5),
+  receiptLeft: {
+    flex: 1,
+    paddingRight: wp(2),
   },
   receiptItemName: {
     fontSize: hp(2),
     fontWeight: '600',
-    color: '#333',
-    flex: 1,
+    color: '#1a1a1a',
   },
-  receiptItemQty: {
+  receiptItemSub: {
     fontSize: hp(1.8),
     color: '#666',
-    marginLeft: wp(2),
+    marginTop: hp(0.3),
   },
-  receiptItemActions: {
+  receiptActions: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: wp(1.5),
   },
-  receiptItemPrice: {
-    fontSize: hp(1.8),
-    fontWeight: '600',
-    color: '#007AFF',
-  },
-  receiptItemButtons: {
-    flexDirection: 'row',
-    gap: wp(1),
-  },
-  qtyButton: {
-    backgroundColor: '#007AFF',
-    width: hp(3.5),
-    height: hp(3.5),
-    borderRadius: hp(0.5),
+  actionButton: {
+    backgroundColor: '#4CAF50',
+    width: hp(4.2),
+    height: hp(4.2),
+    borderRadius: hp(0.9),
     justifyContent: 'center',
     alignItems: 'center',
   },
-  deleteButton: {
-    backgroundColor: '#FF3B30',
-    width: hp(3.5),
-    height: hp(3.5),
-    borderRadius: hp(0.5),
+  actionDelete: {
+    backgroundColor: '#f44336',
+    width: hp(4.2),
+    height: hp(4.2),
+    borderRadius: hp(0.9),
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -329,70 +325,67 @@ const styles = StyleSheet.create({
     marginTop: hp(2),
   },
   receiptFooter: {
-    height: hp(20),
-    backgroundColor: 'yellow',
-    paddingHorizontal: wp(1),
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  summaryRowFirst: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: hp(1),
-  },
-  totalLabel: {
-    fontWeight: '700',
-    fontSize: hp(3),
-  },
-  totalValue: {
-    fontWeight: '700',
-    fontSize: hp(3),
-  },
-  receiptBottomButtons: {
-    height: hp(10),
-    backgroundColor: 'skyblue',
+    backgroundColor: '#ffffff',
     paddingHorizontal: wp(2),
+    paddingVertical: hp(0.8),
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+  },
+  footerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: hp(0.5),
   },
+  footerItems: {
+    fontSize: hp(1.8),
+    color: '#555',
+    fontWeight: '500',
+  },
+  footerTotalLabel: {
+    fontSize: hp(1.8),
+    fontWeight: '600',
+    color: '#1a1a1a',
+  },
+  footerTotalValue: {
+    fontWeight: '700',
+    fontSize: hp(2.3),
+    color: '#4CAF50',
+    textAlign: 'right',
+  },
+
   productsContainer: {
     flex: 2,
-    backgroundColor: 'blue',
-  },
-  productsMainArea: {
-    flex: 6,
-  },
-  productsBottomBar: {
-    flex: 1,
-    backgroundColor: 'white',
-  },
-  productsBottomButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    flex: 1,
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: wp(1),
-    paddingVertical: hp(2),
-    gap: wp(2),
-  },
-  searchInputWrapper: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
     backgroundColor: '#fff',
-    borderRadius: hp(2),
-    paddingHorizontal: wp(2),
+    borderRadius: hp(1),
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    position: 'relative',
+  },
+  productsMainArea: {
+    flex: 6,
+    backgroundColor: '#f8f9fa',
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: wp(2),
+    paddingVertical: hp(2),
+    gap: wp(2),
+    backgroundColor: '#fff',
+  },
+  searchInputWrapper: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+    borderRadius: hp(1),
+    paddingHorizontal: wp(2),
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
   },
   searchIcon: {
     marginRight: wp(2),
@@ -406,41 +399,44 @@ const styles = StyleSheet.create({
   cameraButton: {
     width: hp(6),
     height: hp(6),
-    backgroundColor: '#007AFF',
+    backgroundColor: '#2196F3',
     borderRadius: hp(1),
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.15,
     shadowRadius: 4,
     elevation: 3,
   },
   productListContainer: {
-    padding: wp(1),
-    backgroundColor: 'white',
+    padding: wp(2),
   },
   productItem: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
-    padding: wp(1),
+    padding: wp(2),
     marginBottom: hp(1.5),
-    borderRadius: hp(1.5),
+    borderRadius: hp(1),
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
   },
   productIcon: {
     width: hp(7),
     height: hp(7),
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#f8f9fa',
     borderRadius: hp(1),
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: wp(3),
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
   },
   productInfo: {
     flex: 1,
@@ -457,24 +453,40 @@ const styles = StyleSheet.create({
     gap: wp(2),
   },
   categoryBadge: {
-    backgroundColor: '#E8F4FF',
+    backgroundColor: '#E3F2FD',
     paddingHorizontal: wp(2),
     paddingVertical: hp(0.3),
     borderRadius: hp(0.8),
   },
   categoryText: {
     fontSize: hp(1.5),
-    color: '#007AFF',
-    fontWeight: '500',
+    color: '#2196F3',
+    fontWeight: '600',
   },
   productStock: {
     fontSize: hp(1.6),
-    color: '#666',
+    color: '#757575',
   },
   productPrice: {
     fontSize: hp(2.2),
     fontWeight: '700',
-    color: '#007AFF',
+    color: '#4CAF50',
     marginLeft: wp(2),
+  },
+  floatingButton: {
+    position: 'absolute',
+    right: wp(1),
+    bottom: wp(0.5),
+    width: hp(8.5),
+    height: hp(6.5),
+    borderRadius: hp(3.25),
+    backgroundColor: '#2196F3',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
   },
 });

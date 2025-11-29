@@ -3,6 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import PersistentSidebar from './PersistentSidebar';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function AppLayout({ children, navigation, route }) {
   const currentRoute = route?.name || '';
@@ -12,6 +13,11 @@ export default function AppLayout({ children, navigation, route }) {
       label: 'Home',
       screen: 'Home',
       icon: <Ionicons name="home" size={24} />,
+    },
+    {
+      label: 'POS',
+      screen: 'Pos',
+      icon: <Ionicons name="cash" size={24} />,
     },
     {
       label: 'Details',
@@ -34,7 +40,7 @@ export default function AppLayout({ children, navigation, route }) {
         initialCollapsed={true}
       />
       <View style={styles.content} pointerEvents="box-none">
-        {children}
+        <SafeAreaView style={styles.safeArea}>{children}</SafeAreaView>
       </View>
     </View>
   );
@@ -43,4 +49,5 @@ export default function AppLayout({ children, navigation, route }) {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#fff', position: 'relative' },
   content: { flex: 1, marginLeft: wp(5) },
+  safeArea: { flex: 1 },
 });
