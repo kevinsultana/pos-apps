@@ -20,10 +20,10 @@ export default function AppLayout({ children, navigation, route }) {
       icon: <Ionicons name="cash" size={24} />,
     },
     {
-      label: 'Details',
-      screen: 'Details',
+      label: 'Master',
+      screen: 'Master',
       params: { itemId: 99 },
-      icon: <Ionicons name="document-text" size={24} />,
+      icon: <Ionicons name="apps" size={24} />,
     },
     {
       label: 'Logout',

@@ -62,7 +62,11 @@ export default function PersistentSidebar({
 
       <ScrollView contentContainerStyle={styles.items}>
         {items.map((it, idx) => {
-          const isActive = currentRoute === it.screen;
+          let isActive = currentRoute === it.screen;
+          // Special case: Master screen should be active for all Master* screens
+          if (it.screen === 'Master' && currentRoute?.startsWith('Master')) {
+            isActive = true;
+          }
           return (
             <TouchableOpacity
               key={it.key ?? `${idx}-${String(it.label)}`}

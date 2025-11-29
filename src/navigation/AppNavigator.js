@@ -1,10 +1,12 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from '../screens/HomeScreen';
-import DetailsScreen from '../screens/DetailsScreen';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import PosScreen from '../screens/PosScreen';
+import MasterScreen from '../screens/MasterScreen';
+import MasterProduct from '../screens/Master/MasterProduct';
+import MasterProductEdit from '../screens/Master/MasterProductEdit';
 
 const Stack = createNativeStackNavigator();
 
@@ -18,7 +20,9 @@ export default function AppNavigator() {
       <Stack.Screen name="Register" component={RegisterScreen} />
       <Stack.Screen name="Home" component={HomeScreen} />
       <Stack.Screen name="Pos" component={PosScreen} />
-      <Stack.Screen name="Details" component={DetailsScreen} />
+      <Stack.Screen name="Master" component={MasterScreen} />
+      <Stack.Screen name="MasterProduct" component={MasterProduct} />
+      <Stack.Screen name="MasterProductEdit" component={MasterProductEdit} />
     </Stack.Navigator>
   );
 }
