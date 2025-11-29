@@ -32,28 +32,28 @@ export default function MasterScreen({ navigation, route }) {
       title: 'Pemasok',
       icon: 'truck-delivery',
       color: '#FF9800',
-      onPress: () => console.log('Navigate to Pemasok'),
+      onPress: () => navigation.navigate('MasterPemasok'),
     },
     {
       id: '4',
       title: 'Kategori',
       icon: 'tag-multiple',
       color: '#9C27B0',
-      onPress: () => console.log('Navigate to Kategori'),
+      onPress: () => navigation.navigate('MasterKategori'),
     },
     {
       id: '5',
       title: 'Satuan',
       icon: 'scale-balance',
       color: '#00BCD4',
-      onPress: () => console.log('Navigate to Satuan'),
+      onPress: () => navigation.navigate('MasterSatuan'),
     },
     {
       id: '6',
       title: 'Jenis Pembayaran',
       icon: 'credit-card-multiple',
       color: '#F44336',
-      onPress: () => console.log('Navigate to Jenis Pembayaran'),
+      onPress: () => navigation.navigate('MasterPayment'),
     },
   ];
 
