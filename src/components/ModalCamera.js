@@ -28,7 +28,10 @@ export default function ModalCamera({ visible, onClose, onResult }) {
         setHasPermission(true);
       }
     };
-    if (visible) ensurePermission();
+    if (visible) {
+      ensurePermission();
+      setScanning(true);
+    }
   }, [visible]);
 
   const codeScanner = useCodeScanner({
@@ -46,7 +49,6 @@ export default function ModalCamera({ visible, onClose, onResult }) {
       if (!scanning || !codes.length) return;
       const value = codes[0]?.value;
       if (value) {
-        setScanning(false);
         onResult?.(value);
       }
     },

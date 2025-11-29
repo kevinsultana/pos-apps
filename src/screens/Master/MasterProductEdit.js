@@ -12,6 +12,7 @@ import {
 import AppLayout from '../../components/AppLayout';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import ModalCamera from '../../components/ModalCamera';
+import ButtonBack from '../../components/ButtonBack';
 
 const PRIMARY = '#1E88E5';
 
@@ -69,8 +70,15 @@ export default function MasterProductEdit({ navigation, route }) {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.header}>
-            <Text style={styles.title}>Edit Produk</Text>
-            <Text style={styles.subtitle}>Perbarui detail produk Anda</Text>
+            <View
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
+            >
+              <ButtonBack onPress={() => navigation.goBack()} />
+              <View>
+                <Text style={styles.title}>Edit Produk</Text>
+                <Text style={styles.subtitle}>Perbarui detail produk Anda</Text>
+              </View>
+            </View>
           </View>
 
           <View style={styles.card}>

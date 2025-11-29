@@ -10,6 +10,8 @@ import {
 import AppLayout from '../../components/AppLayout';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import ModalCamera from '../../components/ModalCamera';
+import ButtonBack from '../../components/ButtonBack';
+import { widthPercentageToDP } from 'react-native-responsive-screen';
 
 const PRIMARY = '#1E88E5';
 const CARD_BG = '#ffffff';
@@ -140,6 +142,8 @@ export default function MasterProduct({ navigation, route }) {
     <AppLayout navigation={navigation} route={route}>
       <View style={styles.container}>
         <View style={styles.headerRow}>
+          <ButtonBack onPress={() => navigation.goBack()} type="large" />
+          <View style={{ width: widthPercentageToDP(1) }} />
           <View style={styles.searchBox}>
             <Icon name="magnify" size={20} color="#64748b" />
             <TextInput

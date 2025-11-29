@@ -2,23 +2,25 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
-  Button,
   StyleSheet,
   FlatList,
   TextInput,
   TouchableOpacity,
+  Platform,
+  ToastAndroid,
 } from 'react-native';
 import AppLayout from '../components/AppLayout';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
-import HeaderPos from '../components/pos/HeaderPos';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useCart } from '../context/CartContext';
+import ModalCamera from '../components/ModalCamera';
 
 export default function HomeScreen({ navigation, route }) {
   const [searchText, setSearchText] = useState('');
+  const [showCam, setShowCam] = useState(false);
   const receiptListRef = useRef(null);
 
   const {
@@ -38,45 +40,133 @@ export default function HomeScreen({ navigation, route }) {
   }, [cartItems.length]);
 
   const dummyProducts = [
-    { id: 1, name: 'Kopi Hitam', price: 8000, category: 'Minuman', stock: 50 },
-    { id: 2, name: 'Kopi Susu', price: 10000, category: 'Minuman', stock: 45 },
-    { id: 3, name: 'Teh Manis', price: 5000, category: 'Minuman', stock: 60 },
-    { id: 4, name: 'Jus Jeruk', price: 12000, category: 'Minuman', stock: 30 },
+    {
+      id: 1,
+      name: 'Kopi Hitam',
+      price: 8000,
+      category: 'Minuman',
+      stock: 50,
+      barcode: '123456789012',
+    },
+    {
+      id: 2,
+      name: 'Kopi Susu',
+      price: 10000,
+      category: 'Minuman',
+      stock: 45,
+      barcode: '8991001000002',
+    },
+    {
+      id: 3,
+      name: 'Teh Manis',
+      price: 5000,
+      category: 'Minuman',
+      stock: 60,
+      barcode: '8991001000003',
+    },
+    {
+      id: 4,
+      name: 'Jus Jeruk',
+      price: 12000,
+      category: 'Minuman',
+      stock: 30,
+      barcode: '8991001000004',
+    },
     {
       id: 5,
       name: 'Nasi Goreng',
       price: 15000,
       category: 'Makanan',
       stock: 25,
+      barcode: '8991001000005',
     },
-    { id: 6, name: 'Mie Goreng', price: 14000, category: 'Makanan', stock: 28 },
-    { id: 7, name: 'Mie Ayam', price: 12000, category: 'Makanan', stock: 32 },
+    {
+      id: 6,
+      name: 'Mie Goreng',
+      price: 14000,
+      category: 'Makanan',
+      stock: 28,
+      barcode: '8991001000006',
+    },
+    {
+      id: 7,
+      name: 'Mie Ayam',
+      price: 12000,
+      category: 'Makanan',
+      stock: 32,
+      barcode: '8991001000007',
+    },
     {
       id: 8,
       name: 'Ayam Geprek',
       price: 18000,
       category: 'Makanan',
       stock: 20,
+      barcode: '8991001000008',
     },
-    { id: 9, name: 'Sate Ayam', price: 20000, category: 'Makanan', stock: 15 },
-    { id: 10, name: 'Bakso', price: 13000, category: 'Makanan', stock: 22 },
-    { id: 11, name: 'Es Teh', price: 4000, category: 'Minuman', stock: 70 },
-    { id: 12, name: 'Es Jeruk', price: 6000, category: 'Minuman', stock: 55 },
+    {
+      id: 9,
+      name: 'Sate Ayam',
+      price: 20000,
+      category: 'Makanan',
+      stock: 15,
+      barcode: '8991001000009',
+    },
+    {
+      id: 10,
+      name: 'Bakso',
+      price: 13000,
+      category: 'Makanan',
+      stock: 22,
+      barcode: '8991001000010',
+    },
+    {
+      id: 11,
+      name: 'Es Teh',
+      price: 4000,
+      category: 'Minuman',
+      stock: 70,
+      barcode: '8991001000011',
+    },
+    {
+      id: 12,
+      name: 'Es Jeruk',
+      price: 6000,
+      category: 'Minuman',
+      stock: 55,
+      barcode: '8991001000012',
+    },
     {
       id: 13,
       name: 'Cappuccino',
       price: 15000,
       category: 'Minuman',
       stock: 18,
+      barcode: '8991001000013',
     },
-    { id: 14, name: 'Latte', price: 16000, category: 'Minuman', stock: 20 },
-    { id: 15, name: 'Roti Bakar', price: 10000, category: 'Snack', stock: 35 },
+    {
+      id: 14,
+      name: 'Latte',
+      price: 16000,
+      category: 'Minuman',
+      stock: 20,
+      barcode: '8991001000014',
+    },
+    {
+      id: 15,
+      name: 'Roti Bakar',
+      price: 10000,
+      category: 'Snack',
+      stock: 35,
+      barcode: '8991001000015',
+    },
     {
       id: 16,
       name: 'Pisang Goreng',
       price: 8000,
       category: 'Snack',
       stock: 40,
+      barcode: '8991001000016',
     },
     {
       id: 17,
@@ -84,18 +174,28 @@ export default function HomeScreen({ navigation, route }) {
       price: 12000,
       category: 'Snack',
       stock: 30,
+      barcode: '8991001000017',
     },
-    { id: 18, name: 'Nugget', price: 14000, category: 'Snack', stock: 25 },
+    {
+      id: 18,
+      name: 'Nugget',
+      price: 14000,
+      category: 'Snack',
+      stock: 25,
+      barcode: '8991001000018',
+    },
   ];
 
-  const filteredProducts = dummyProducts.filter(product =>
-    product.name.toLowerCase().includes(searchText.toLowerCase()),
-  );
+  const filteredProducts = dummyProducts.filter(product => {
+    const q = searchText.trim().toLowerCase();
+    if (!q) return true;
+    return [product.name, product.category, product.barcode]
+      .filter(Boolean)
+      .some(v => String(v).toLowerCase().includes(q));
+  });
   return (
     <AppLayout navigation={navigation} route={route} headerTitle="Home">
       <View style={styles.container}>
-        {/* <HeaderPos /> */}
-
         {/* grid component */}
         <View style={styles.gridContainer}>
           {/* receipt */}
@@ -178,8 +278,23 @@ export default function HomeScreen({ navigation, route }) {
                     onChangeText={setSearchText}
                     placeholderTextColor="#999"
                   />
+                  {searchText.length > 0 && (
+                    <TouchableOpacity
+                      onPress={() => setSearchText('')}
+                      style={styles.clearBtn}
+                    >
+                      <Ionicons
+                        name="close-circle"
+                        size={hp(3)}
+                        color="#94a3b8"
+                      />
+                    </TouchableOpacity>
+                  )}
                 </View>
-                <TouchableOpacity style={styles.cameraButton}>
+                <TouchableOpacity
+                  style={styles.cameraButton}
+                  onPress={() => setShowCam(true)}
+                >
                   <Ionicons name="camera" size={hp(3.5)} color="#fff" />
                 </TouchableOpacity>
               </View>
@@ -234,6 +349,50 @@ export default function HomeScreen({ navigation, route }) {
           </View>
         </View>
       </View>
+      {/* Camera Modal */}
+      <ModalCamera
+        visible={showCam}
+        onClose={() => setShowCam(false)}
+        onResult={code => {
+          // Fill search bar with scanned code
+          setSearchText(code);
+
+          // Find product by barcode
+          const product = dummyProducts.find(
+            p => String(p.barcode) === String(code),
+          );
+          setShowCam(false);
+
+          if (!product) {
+            if (Platform.OS === 'android') {
+              ToastAndroid.show(
+                'Barcode tidak valid: produk tidak ditemukan',
+                ToastAndroid.SHORT,
+              );
+            }
+            return;
+          }
+
+          if (product.stock <= 0) {
+            if (Platform.OS === 'android') {
+              ToastAndroid.show(
+                'Stok habis: produk tidak tersedia',
+                ToastAndroid.SHORT,
+              );
+            }
+            return;
+          }
+
+          // Add to cart
+          addToCart(product);
+          if (Platform.OS === 'android') {
+            ToastAndroid.show(
+              'Produk ditambahkan ke keranjang',
+              ToastAndroid.SHORT,
+            );
+          }
+        }}
+      />
     </AppLayout>
   );
 }
@@ -388,13 +547,16 @@ const styles = StyleSheet.create({
     borderColor: '#e0e0e0',
   },
   searchIcon: {
-    marginRight: wp(2),
+    marginRight: wp(1),
   },
   searchInput: {
     flex: 1,
-    height: hp(6),
     fontSize: hp(2),
     color: '#333',
+  },
+  clearBtn: {
+    paddingHorizontal: wp(0.5),
+    paddingVertical: hp(0.3),
   },
   cameraButton: {
     width: hp(6),
@@ -490,3 +652,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
 });
+
+// Camera modal for barcode scanning
+// On successful scan: fill search, validate product, add to cart
+// On failure: show alert message
