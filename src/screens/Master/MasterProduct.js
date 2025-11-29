@@ -74,16 +74,17 @@ const sampleProducts = [
 export default function MasterProduct({ navigation, route }) {
   const [query, setQuery] = useState('');
   const [showCam, setShowCam] = useState(false);
+  const [products, setProducts] = useState(sampleProducts);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return sampleProducts;
-    return sampleProducts.filter(p =>
+    if (!q) return products;
+    return products.filter(p =>
       [p.name, p.variant, p.sku, p.barcode, p.category, p.supplier]
         .filter(Boolean)
         .some(v => String(v).toLowerCase().includes(q)),
     );
-  }, [query]);
+  }, [query, products]);
 
   const renderItem = ({ item }) => (
     <View style={styles.card}>
@@ -170,6 +171,22 @@ export default function MasterProduct({ navigation, route }) {
           >
             <Icon name="barcode-scan" size={20} color="#fff" />
           </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.addBtn}
+            onPress={() =>
+              navigation.navigate('MasterProductCreate', {
+                onSave: payload => {
+                  const id =
+                    payload.sku ||
+                    `SKU-${String(products.length + 1).padStart(3, '0')}`;
+                  setProducts(prev => [...prev, { id, ...payload }]);
+                },
+              })
+            }
+            accessibilityLabel="Tambah produk"
+          >
+            <Icon name="plus" size={20} color="#fff" />
+          </TouchableOpacity>
         </View>
 
         <FlatList
@@ -232,6 +249,16 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   scanBtn: {
+    marginLeft: 10,
+    height: 44,
+    width: 44,
+    borderRadius: 22,
+    backgroundColor: PRIMARY,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 3,
+  },
+  addBtn: {
     marginLeft: 10,
     height: 44,
     width: 44,

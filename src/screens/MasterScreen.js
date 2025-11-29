@@ -25,7 +25,7 @@ export default function MasterScreen({ navigation, route }) {
       title: 'Pelanggan',
       icon: 'account-group',
       color: '#2196F3',
-      onPress: () => console.log('Navigate to Pelanggan'),
+      onPress: () => navigation.navigate('MasterPelanggan'),
     },
     {
       id: '3',

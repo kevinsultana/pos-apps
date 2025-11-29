@@ -7,6 +7,10 @@ import PosScreen from '../screens/PosScreen';
 import MasterScreen from '../screens/MasterScreen';
 import MasterProduct from '../screens/Master/MasterProduct';
 import MasterProductEdit from '../screens/Master/MasterProductEdit';
+import MasterProductCreate from '../screens/Master/MasterProductCreate';
+import MasterPelanggan from '../screens/Master/MasterPelanggan';
+import MasterPelangganCreate from '../screens/Master/MasterPelangganCreate';
+import MasterPelangganEdit from '../screens/Master/MasterPelangganEdit';
 
 const Stack = createNativeStackNavigator();
 
@@ -23,6 +27,19 @@ export default function AppNavigator() {
       <Stack.Screen name="Master" component={MasterScreen} />
       <Stack.Screen name="MasterProduct" component={MasterProduct} />
       <Stack.Screen name="MasterProductEdit" component={MasterProductEdit} />
+      <Stack.Screen
+        name="MasterProductCreate"
+        component={MasterProductCreate}
+      />
+      <Stack.Screen name="MasterPelanggan" component={MasterPelanggan} />
+      <Stack.Screen
+        name="MasterPelangganCreate"
+        component={MasterPelangganCreate}
+      />
+      <Stack.Screen
+        name="MasterPelangganEdit"
+        component={MasterPelangganEdit}
+      />
     </Stack.Navigator>
   );
 }
