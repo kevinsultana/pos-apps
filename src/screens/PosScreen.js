@@ -33,6 +33,10 @@ export default function PosScreen({ navigation, route }) {
   const clearAll = () => setPayment('');
   const backspace = () => setPayment(prev => prev.slice(0, -1));
 
+  const addAmount = amt => {
+    setPayment(prev => String(Number(prev || 0) + amt));
+  };
+
   const pay = () => {
     const payAmount = Number(payment || 0);
     if (payAmount < total) {
@@ -131,9 +135,9 @@ export default function PosScreen({ navigation, route }) {
             {/* Grid keypad for easier customization */}
             <View style={styles.keypad}>
               {/* First row: quick chips occupying 4 columns */}
-              <View style={styles.gridRow4}>
+              <View style={styles.gridRow8}>
                 <TouchableOpacity
-                  style={[styles.keyChip, styles.chipPrimary]}
+                  style={[styles.keyChipSmall, styles.chipPrimary]}
                   onPress={() => setPayment(String(total))}
                 >
                   <Text style={[styles.chipText, styles.chipPrimaryText]}>
@@ -141,22 +145,46 @@ export default function PosScreen({ navigation, route }) {
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={styles.keyChip}
-                  onPress={() => setPayment('50000')}
+                  style={styles.keyChipSmall}
+                  onPress={() => addAmount(1000)}
+                >
+                  <Text style={styles.chipText}>Rp1.000</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.keyChipSmall}
+                  onPress={() => addAmount(2000)}
+                >
+                  <Text style={styles.chipText}>Rp2.000</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.keyChipSmall}
+                  onPress={() => addAmount(5000)}
+                >
+                  <Text style={styles.chipText}>Rp5.000</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.keyChipSmall}
+                  onPress={() => addAmount(10000)}
+                >
+                  <Text style={styles.chipText}>Rp10.000</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.keyChipSmall}
+                  onPress={() => addAmount(20000)}
+                >
+                  <Text style={styles.chipText}>Rp20.000</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.keyChipSmall}
+                  onPress={() => addAmount(50000)}
                 >
                   <Text style={styles.chipText}>Rp50.000</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={styles.keyChip}
-                  onPress={() => setPayment('100000')}
+                  style={styles.keyChipSmall}
+                  onPress={() => addAmount(100000)}
                 >
                   <Text style={styles.chipText}>Rp100.000</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.keyChip}
-                  onPress={() => setPayment('200000')}
-                >
-                  <Text style={styles.chipText}>Rp200.000</Text>
                 </TouchableOpacity>
               </View>
               {/* Custom modal for success */}
@@ -173,22 +201,48 @@ export default function PosScreen({ navigation, route }) {
                     </View>
                     <Text style={styles.modalTitle}>Pembayaran Berhasil</Text>
                     <Text style={styles.modalMessage}>{successMessage}</Text>
-                    <TouchableOpacity
-                      style={[
-                        styles.modalButton,
-                        { backgroundColor: '#FF6F00' },
-                      ]}
-                      onPress={() => {
-                        try {
-                          if (typeof clearCart === 'function') clearCart();
-                        } catch (e) {}
-                        setPayment('');
-                        setShowSuccess(false);
-                        navigation.navigate('Home');
+                    <View
+                      style={{
+                        width: '100%',
+                        alignItems: 'center',
+                        flexDirection: 'row',
+                        justifyContent: 'center',
+                        gap: wp(4),
                       }}
                     >
-                      <Text style={styles.modalButtonText}>OK</Text>
-                    </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[
+                          styles.modalButton,
+                          { backgroundColor: '#f7710bff' },
+                        ]}
+                        onPress={() => {
+                          try {
+                            if (typeof clearCart === 'function') clearCart();
+                          } catch (e) {}
+                          setPayment('');
+                          setShowSuccess(false);
+                          navigation.navigate('Home');
+                        }}
+                      >
+                        <Text style={styles.modalButtonText}>OK</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[
+                          styles.modalButton,
+                          { backgroundColor: '#fe4040ff' },
+                        ]}
+                        onPress={() => {
+                          try {
+                            if (typeof clearCart === 'function') clearCart();
+                          } catch (e) {}
+                          setPayment('');
+                          setShowSuccess(false);
+                          navigation.navigate('Home');
+                        }}
+                      >
+                        <Text style={styles.modalButtonText}>Cetak Ulang</Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
                 </View>
               </Modal>
@@ -444,6 +498,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: wp(2),
   },
+  gridRow8: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: wp(1),
+  },
   key: {
     width: '30%',
     height: hp(7),
@@ -463,6 +522,14 @@ const styles = StyleSheet.create({
   keyChip: {
     width: '23%',
     height: hp(6.5),
+    backgroundColor: '#fdebd0',
+    borderRadius: hp(1),
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  keyChipSmall: {
+    width: '11%',
+    height: hp(6.0),
     backgroundColor: '#fdebd0',
     borderRadius: hp(1),
     justifyContent: 'center',
@@ -491,13 +558,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: wp(4),
   },
-  modalBox: {
-    width: '100%',
-    backgroundColor: '#fff',
-    borderRadius: hp(1),
-    padding: wp(4),
-    alignItems: 'center',
-  },
   modalTitle: { fontSize: hp(2.2), fontWeight: '800', marginBottom: hp(1) },
   modalMessage: {
     fontSize: hp(1.8),
@@ -507,9 +567,8 @@ const styles = StyleSheet.create({
   },
   modalButton: {
     paddingVertical: hp(1.2),
-    paddingHorizontal: wp(8),
     borderRadius: hp(1),
-    width: '100%',
+    width: '40%',
     alignItems: 'center',
   },
   modalButtonText: { color: '#fff', fontWeight: '700', fontSize: hp(1.9) },
@@ -532,7 +591,7 @@ const styles = StyleSheet.create({
     marginBottom: hp(1),
   },
   modalBox: {
-    width: wp(70),
+    width: wp(40),
     backgroundColor: '#fff',
     borderRadius: hp(1),
     padding: wp(4),

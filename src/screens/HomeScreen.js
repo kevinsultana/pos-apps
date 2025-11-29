@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Platform,
   ToastAndroid,
+  Animated,
 } from 'react-native';
 import AppLayout from '../components/AppLayout';
 import {
@@ -22,6 +23,7 @@ export default function HomeScreen({ navigation, route }) {
   const [searchText, setSearchText] = useState('');
   const [showCam, setShowCam] = useState(false);
   const receiptListRef = useRef(null);
+  const [selectedCategory, setSelectedCategory] = useState('all');
 
   const {
     cartItems,
@@ -186,12 +188,45 @@ export default function HomeScreen({ navigation, route }) {
     },
   ];
 
+  const categories = [
+    { id: 'all', name: 'All' },
+    { id: 'Makanan', name: 'Makanan' },
+    { id: 'Minuman', name: 'Minuman' },
+    { id: 'Snack', name: 'Snack' },
+  ];
+
+  // Animated values per category (0 = normal, 1 = selected)
+  const categoryAnim = useRef({}).current;
+  categories.forEach(cat => {
+    if (!categoryAnim[cat.id]) {
+      categoryAnim[cat.id] = new Animated.Value(
+        cat.id === selectedCategory ? 1 : 0,
+      );
+    }
+  });
+
+  // Animate when selectedCategory changes
+  useEffect(() => {
+    categories.forEach(cat => {
+      Animated.timing(categoryAnim[cat.id], {
+        toValue: cat.id === selectedCategory ? 1 : 0,
+        duration: 220,
+        useNativeDriver: true, // scale & opacity only
+      }).start();
+    });
+  }, [selectedCategory]);
+
+  // Filter products by search text and selected category
   const filteredProducts = dummyProducts.filter(product => {
     const q = searchText.trim().toLowerCase();
-    if (!q) return true;
-    return [product.name, product.category, product.barcode]
-      .filter(Boolean)
-      .some(v => String(v).toLowerCase().includes(q));
+    const matchesSearch = !q
+      ? true
+      : [product.name, product.category, product.barcode]
+          .filter(Boolean)
+          .some(v => String(v).toLowerCase().includes(q));
+    const matchesCategory =
+      selectedCategory === 'all' || product.category === selectedCategory;
+    return matchesSearch && matchesCategory;
   });
   return (
     <AppLayout navigation={navigation} route={route} headerTitle="Home">
@@ -297,6 +332,62 @@ export default function HomeScreen({ navigation, route }) {
                 >
                   <Ionicons name="camera" size={hp(3.5)} color="#fff" />
                 </TouchableOpacity>
+              </View>
+
+              {/* category selector */}
+              <View style={styles.categorySelector}>
+                <FlatList
+                  data={categories}
+                  keyExtractor={item => String(item.id)}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.categoryList}
+                  renderItem={({ item }) => {
+                    const anim = categoryAnim[item.id];
+                    const scale = anim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [1, 1.08],
+                    });
+                    const opacity = anim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0.55, 1],
+                    });
+                    return (
+                      <TouchableOpacity
+                        onPress={() => setSelectedCategory(item.id)}
+                        activeOpacity={0.85}
+                      >
+                        <Animated.View
+                          style={[
+                            styles.categoryItem,
+                            {
+                              transform: [{ scale }],
+                              opacity,
+                              backgroundColor:
+                                item.id === selectedCategory
+                                  ? '#2196F3'
+                                  : '#fff',
+                              borderColor: '#2196F3',
+                              shadowOpacity:
+                                item.id === selectedCategory ? 0.12 : 0.05,
+                              elevation: item.id === selectedCategory ? 4 : 2,
+                            },
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.categoryItemText,
+                              item.id === selectedCategory &&
+                                styles.selectedCategoryText,
+                            ]}
+                          >
+                            {item.name}
+                          </Text>
+                        </Animated.View>
+                      </TouchableOpacity>
+                    );
+                  }}
+                />
               </View>
 
               {/* Product List */}
@@ -650,6 +741,43 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 5,
+  },
+  // Category selector styles
+  categorySelector: {
+    backgroundColor: '#fff',
+    paddingVertical: hp(1),
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  categoryList: {
+    paddingHorizontal: wp(2),
+  },
+  categoryItem: {
+    marginRight: wp(2),
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(0.8),
+    borderRadius: hp(3),
+    borderWidth: 1,
+    borderColor: '#2196F3',
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  selectedCategory: {
+    backgroundColor: '#2196F3',
+    borderColor: '#2196F3',
+    elevation: 3,
+  },
+  categoryItemText: {
+    fontSize: hp(1.7),
+    fontWeight: '600',
+    color: '#2196F3',
+  },
+  selectedCategoryText: {
+    color: '#fff',
   },
 });
 
