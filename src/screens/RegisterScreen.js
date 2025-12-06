@@ -9,6 +9,7 @@ import {
   Animated,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { showError, showSuccess } from '../utils/toast';
 
 const PRIMARY = '#1E88E5';
 const CARD_BG = '#ffffff';
@@ -40,9 +41,15 @@ export default function RegisterScreen({ navigation }) {
   }, [loading, spinAnim]);
 
   const onRegister = () => {
+    if (!name.trim() || !email.trim() || !password.trim()) {
+      showError('Lengkapi semua data terlebih dahulu');
+      return;
+    }
+
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
+      showSuccess('Registrasi berhasil');
       navigation.replace('Home');
     }, 600);
   };

@@ -6,11 +6,11 @@ import {
   useCodeScanner,
 } from 'react-native-vision-camera';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { showError } from '../utils/toast';
 
 const PRIMARY = '#1E88E5';
 
 export default function ModalCamera({ visible, onClose, onResult }) {
-  const device = useCameraDevice('back');
   const [hasPermission, setHasPermission] = useState(false);
   const [torch, setTorch] = useState('off');
   const [scanning, setScanning] = useState(true);
@@ -31,6 +31,9 @@ export default function ModalCamera({ visible, onClose, onResult }) {
     if (visible) {
       ensurePermission();
       setScanning(true);
+    } else {
+      setScanning(false);
+      setTorch('off');
     }
   }, [visible]);
 
@@ -46,9 +49,10 @@ export default function ModalCamera({ visible, onClose, onResult }) {
       'code-93',
     ],
     onCodeScanned: codes => {
-      if (!scanning || !codes.length) return;
+      if (!visible || !scanning || !codes.length) return;
       const value = codes[0]?.value;
       if (value) {
+        setScanning(false);
         onResult?.(value);
       }
     },
@@ -87,9 +91,16 @@ export default function ModalCamera({ visible, onClose, onResult }) {
             <Camera
               style={StyleSheet.absoluteFill}
               device={activeDevice}
-              isActive={visible}
+              isActive={visible && scanning}
               torch={torch}
               codeScanner={codeScanner}
+              photo={false}
+              video={false}
+              onError={err => {
+                console.warn('Camera error', err);
+                setScanning(false);
+                showError('Kamera gagal dikonfigurasi, coba ulangi.');
+              }}
             />
             <View style={styles.overlay}>
               <View style={styles.frame} />
