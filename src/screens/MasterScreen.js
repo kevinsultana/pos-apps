@@ -9,10 +9,29 @@ import React from 'react';
 import AppLayout from '../components/AppLayout';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-const PRIMARY = '#1E88E5';
-
 export default function MasterScreen({ navigation, route }) {
   const masterMenus = [
+    {
+      id: '7',
+      title: 'Merk',
+      icon: 'trademark',
+      color: '#E91E63',
+      onPress: () => navigation.navigate('MasterMerek'),
+    },
+    {
+      id: '4',
+      title: 'Kategori',
+      icon: 'tag-multiple',
+      color: '#9C27B0',
+      onPress: () => navigation.navigate('MasterKategori'),
+    },
+    {
+      id: '5',
+      title: 'Satuan',
+      icon: 'scale-balance',
+      color: '#00BCD4',
+      onPress: () => navigation.navigate('MasterSatuan'),
+    },
     {
       id: '1',
       title: 'Produk',
@@ -33,20 +52,6 @@ export default function MasterScreen({ navigation, route }) {
       icon: 'truck-delivery',
       color: '#FF9800',
       onPress: () => navigation.navigate('MasterPemasok'),
-    },
-    {
-      id: '4',
-      title: 'Kategori',
-      icon: 'tag-multiple',
-      color: '#9C27B0',
-      onPress: () => navigation.navigate('MasterKategori'),
-    },
-    {
-      id: '5',
-      title: 'Satuan',
-      icon: 'scale-balance',
-      color: '#00BCD4',
-      onPress: () => navigation.navigate('MasterSatuan'),
     },
     {
       id: '6',

@@ -25,6 +25,9 @@ import MasterSatuanEdit from '../screens/Master/MasterSatuanEdit';
 import MasterPayment from '../screens/Master/MasterPayment';
 import MasterPaymentCreate from '../screens/Master/MasterPaymentCreate';
 import MasterPaymentEdit from '../screens/Master/MasterPaymentEdit';
+import MasterMerek from '../screens/Master/MasterMerek';
+import MasterMerekCreate from '../screens/Master/MasterMerekCreate';
+import MasterMerekEdit from '../screens/Master/MasterMerekEdit';
 import ReportScreen from '../screens/ReportScreen';
 import ReportPenjualan from '../screens/Report/ReportPenjualan';
 import ReportStok from '../screens/Report/ReportStok';
@@ -101,6 +104,9 @@ export default function AppNavigator() {
         component={MasterPaymentCreate}
       />
       <Stack.Screen name="MasterPaymentEdit" component={MasterPaymentEdit} />
+      <Stack.Screen name="MasterMerek" component={MasterMerek} />
+      <Stack.Screen name="MasterMerekCreate" component={MasterMerekCreate} />
+      <Stack.Screen name="MasterMerekEdit" component={MasterMerekEdit} />
       <Stack.Screen name="Report" component={ReportScreen} />
       <Stack.Screen name="ReportPenjualan" component={ReportPenjualan} />
       <Stack.Screen name="ReportStok" component={ReportStok} />
