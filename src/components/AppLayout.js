@@ -5,9 +5,16 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAuth } from '../context/AuthContext';
 
 export default function AppLayout({ children, navigation, route }) {
   const currentRoute = route?.name || '';
+  const { clearAuthData } = useAuth();
+
+  const onLogout = () => {
+    clearAuthData();
+    navigation.replace('Login');
+  };
 
   const sidebarItems = [
     {
@@ -32,7 +39,7 @@ export default function AppLayout({ children, navigation, route }) {
     },
     {
       label: 'Logout',
-      onPress: () => navigation.replace('Login'),
+      onPress: () => onLogout(),
       icon: <Ionicons name="log-out" size={24} />,
     },
   ];

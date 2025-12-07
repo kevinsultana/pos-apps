@@ -12,6 +12,7 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useAuth } from '../context/AuthContext';
 
 // Responsive sizes (use sensible fallbacks)
 const COLLAPSED_WIDTH = wp(5);
@@ -30,12 +31,7 @@ export default function PersistentSidebar({
     new Animated.Value(initialCollapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH),
   ).current;
 
-  // Dummy data user & toko (nanti bisa dari context/props)
-  const userData = {
-    name: 'Admin Kasir',
-    role: 'Administrator',
-    storeName: 'Toko Sejahtera',
-  };
+  const { userData, companyData } = useAuth();
 
   useEffect(() => {
     Animated.timing(widthAnim, {
@@ -72,15 +68,15 @@ export default function PersistentSidebar({
             </View>
             <View style={styles.userTexts}>
               <Text style={styles.userName} numberOfLines={1}>
-                {userData.name}
+                {userData?.user.username}
               </Text>
               <Text style={styles.userRole} numberOfLines={1}>
-                {userData.role}
+                {userData.user.roles.map(r => r).join(', ')}
               </Text>
               <View style={styles.storeRow}>
                 <Ionicons name="storefront-outline" size={12} color="#64748b" />
                 <Text style={styles.storeName} numberOfLines={1}>
-                  {userData.storeName}
+                  {companyData?.name}
                 </Text>
               </View>
             </View>
@@ -195,6 +191,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#1e293b',
     marginBottom: 2,
+    textTransform: 'capitalize',
   },
   userRole: {
     fontSize: hp(2),

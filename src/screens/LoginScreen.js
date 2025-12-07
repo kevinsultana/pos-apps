@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,42 +6,55 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Animated,
+  ActivityIndicator,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import BaseApi from '../api/BaseApi';
+import { toastError, toastSuccess } from '../utils/toast';
+import { useAuth } from '../context/AuthContext';
 
 export default function LoginScreen({ navigation }) {
+  const { saveAuthData } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const usernameRef = useRef(null);
   const passwordRef = useRef(null);
   const scrollRef = useRef(null);
-  const spinAnim = useRef(new Animated.Value(0)).current;
 
-  useEffect(() => {
-    if (loading) {
-      Animated.loop(
-        Animated.timing(spinAnim, {
-          toValue: 1,
-          duration: 900,
-          useNativeDriver: true,
-        }),
-      ).start();
-    } else {
-      spinAnim.stopAnimation(() => {
-        spinAnim.setValue(0);
-      });
+  const onLogin = async () => {
+    if (!email.trim() || !password.trim()) {
+      toastError('Lengkapi semua data terlebih dahulu');
+      return;
     }
-  }, [loading, spinAnim]);
-
-  const onLogin = () => {
-    // Placeholder for real auth logic
     setLoading(true);
-    setTimeout(() => {
+    try {
+      const payload = {
+        companyCode: 'CUAN',
+        username: email.trim(),
+        password,
+      };
+      const response = await BaseApi.post('/auth/login', payload);
+      if (response.data.success === true) {
+        const authData = response.data.data;
+        const saved = await saveAuthData(authData.token, authData);
+
+        if (saved) {
+          toastSuccess('Berhasil Login');
+          navigation.replace('Home');
+        } else {
+          toastError('Gagal menyimpan data login');
+        }
+      }
+    } catch (error) {
+      const message =
+        error?.response?.data?.message || 'Tidak dapat masuk, coba lagi';
+      toastError(message);
+      console.log('Login error:', error);
+    } finally {
       setLoading(false);
-      navigation.replace('Home');
-    }, 600);
+    }
   };
 
   return (
@@ -73,6 +86,7 @@ export default function LoginScreen({ navigation }) {
             style={styles.input}
             placeholderTextColor="#9aa0a6"
             returnKeyType="next"
+            ref={usernameRef}
             onFocus={() => {
               if (scrollRef.current) {
                 scrollRef.current.scrollTo({ y: -100, animated: true });
@@ -123,20 +137,7 @@ export default function LoginScreen({ navigation }) {
           disabled={loading}
         >
           {loading ? (
-            <Animated.View
-              style={{
-                transform: [
-                  {
-                    rotate: spinAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: ['0deg', '360deg'],
-                    }),
-                  },
-                ],
-              }}
-            >
-              <Icon name="loading" size={20} color="#fff" />
-            </Animated.View>
+            <ActivityIndicator animating={true} color={'white'} />
           ) : (
             <Text style={styles.primaryButtonText}>Masuk</Text>
           )}
@@ -150,13 +151,12 @@ export default function LoginScreen({ navigation }) {
             <Text style={styles.link}>Lupa password?</Text>
           </TouchableOpacity>
         </View>
-      </View>
 
-      <Text style={styles.footer}>Versi demo • Untuk keperluan internal</Text>
+        <Text style={styles.footer}>Versi demo • Untuk keperluan internal</Text>
+      </View>
     </ScrollView>
   );
 }
-
 const PRIMARY = '#1E88E5';
 const CARD_BG = '#ffffff';
 
@@ -235,6 +235,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginTop: 12,
   },
+  link: { color: PRIMARY, fontWeight: '600' },
   link: { color: PRIMARY, fontWeight: '600' },
 
   footer: { marginTop: 22, color: '#94a3b8', fontSize: 12 },
