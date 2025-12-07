@@ -24,7 +24,7 @@ import { toastSuccess, toastError } from '../../utils/toast';
 const PRIMARY = '#1E88E5';
 
 export default function MasterProductCreate({ navigation, route }) {
-  const { getApiConfig, companyId } = useAuth();
+  const { getApiConfig } = useAuth();
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
   const [variants, setVariants] = useState([
