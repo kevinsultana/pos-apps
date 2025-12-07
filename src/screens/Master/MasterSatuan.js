@@ -1,37 +1,59 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   StyleSheet,
   Text,
   View,
   FlatList,
   TouchableOpacity,
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import AppLayout from '../../components/AppLayout';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import ButtonBack from '../../components/ButtonBack';
+import BaseApi from '../../api/BaseApi';
+import { useAuth } from '../../context/AuthContext';
+import { toastError } from '../../utils/toast';
 
 const PRIMARY = '#1E88E5';
 
 export default function MasterSatuan({ navigation, route }) {
-  const [units, setUnits] = useState([
-    { id: 'SAT-001', name: 'Pcs', symbol: 'pcs' },
-    { id: 'SAT-002', name: 'Karton', symbol: 'krt' },
-    { id: 'SAT-003', name: 'Lusin', symbol: 'lsn' },
-    { id: 'SAT-004', name: 'Kilogram', symbol: 'kg' },
-    { id: 'SAT-005', name: 'Liter', symbol: 'L' },
-  ]);
+  const { getApiConfig, companyId } = useAuth();
+  const [units, setUnits] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const addUnit = payload => {
-    const id = `SAT-${String(units.length + 1).padStart(3, '0')}`;
-    setUnits(prev => [...prev, { id, ...payload }]);
+  useFocusEffect(
+    useCallback(() => {
+      fetchUnits();
+    }, [companyId]),
+  );
+
+  const fetchUnits = async () => {
+    try {
+      setLoading(true);
+      const response = await BaseApi.get('/units', getApiConfig());
+
+      if (response.data?.success) {
+        setUnits(response.data.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching units:', error);
+      toastError('Gagal memuat data satuan');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const updateUnit = updated => {
-    setUnits(prev => prev.map(u => (u.id === updated.id ? updated : u)));
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchUnits();
+    setRefreshing(false);
   };
 
-  const deleteUnit = id => {
-    setUnits(prev => prev.filter(u => u.id !== id));
+  const addUnit = () => {
+    fetchUnits(); // Refresh data after adding new unit
   };
 
   const renderItem = ({ item }) => (
@@ -43,29 +65,8 @@ export default function MasterSatuan({ navigation, route }) {
         <View style={{ flex: 1 }}>
           <Text style={styles.name}>{item.name}</Text>
           <View style={styles.metaRow}>
-            <Icon name="alpha-s-circle" color="#64748b" size={14} />
-            <Text style={styles.metaText}>{item.symbol}</Text>
+            <Text style={styles.metaText}>{item.short_name}</Text>
           </View>
-        </View>
-        <View style={styles.actions}>
-          <TouchableOpacity
-            style={styles.iconBtn}
-            onPress={() =>
-              navigation.navigate('MasterSatuanEdit', {
-                unit: item,
-                onUpdate: updateUnit,
-                onDelete: deleteUnit,
-              })
-            }
-          >
-            <Icon name="pencil" size={20} color="#64748b" />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.iconBtn}
-            onPress={() => deleteUnit(item.id)}
-          >
-            <Icon name="trash-can" size={20} color="#ef4444" />
-          </TouchableOpacity>
         </View>
       </View>
     </View>
@@ -94,7 +95,39 @@ export default function MasterSatuan({ navigation, route }) {
           keyExtractor={item => item.id}
           renderItem={renderItem}
           contentContainerStyle={styles.listContent}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+          ListEmptyComponent={
+            !loading ? (
+              <View style={styles.emptyContainer}>
+                <Icon name="scale-balance" size={64} color="#cbd5e1" />
+                <Text style={styles.emptyTitle}>Belum ada satuan</Text>
+                <Text style={styles.emptySubtitle}>
+                  Tambahkan satuan produk pertama Anda
+                </Text>
+                <TouchableOpacity
+                  style={styles.emptyBtn}
+                  onPress={() =>
+                    navigation.navigate('MasterSatuanCreate', {
+                      onSave: addUnit,
+                    })
+                  }
+                >
+                  <Icon name="plus" size={20} color="#fff" />
+                  <Text style={styles.emptyBtnText}>Tambah Satuan</Text>
+                </TouchableOpacity>
+              </View>
+            ) : null
+          }
         />
+
+        {loading && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={PRIMARY} />
+            <Text style={styles.loadingText}>Memuat satuan...</Text>
+          </View>
+        )}
       </View>
     </AppLayout>
   );
@@ -139,6 +172,56 @@ const styles = StyleSheet.create({
   name: { fontSize: 16, fontWeight: '700', color: '#0f172a' },
   metaRow: { flexDirection: 'row', alignItems: 'center', marginTop: 6, gap: 6 },
   metaText: { color: '#64748b', fontSize: 12 },
-  actions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  iconBtn: { padding: 6 },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+    paddingHorizontal: 20,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#0f172a',
+    marginTop: 16,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    color: '#64748b',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  emptyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: PRIMARY,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginTop: 24,
+    elevation: 3,
+  },
+  emptyBtnText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  loadingContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#64748b',
+  },
 });

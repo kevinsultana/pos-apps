@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
+  Modal,
+  FlatList,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import AppLayout from '../../components/AppLayout';
@@ -18,24 +20,55 @@ export default function MasterGudangCreate({ navigation, route }) {
   const { getApiConfig, companyId } = useAuth();
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
-  const [address, setAddress] = useState('');
+  const [outlets, setOutlets] = useState([]);
+  const [selectedOutlet, setSelectedOutlet] = useState(null);
+  const [outletLoading, setOutletLoading] = useState(false);
+  const [outletModalVisible, setOutletModalVisible] = useState(false);
+  const [warehouseType, setWarehouseType] = useState(null);
+  const [typeModalVisible, setTypeModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const codeRef = useRef(null);
   const addressRef = useRef(null);
 
+  useEffect(() => {
+    const fetchOutlets = async () => {
+      try {
+        setOutletLoading(true);
+        const res = await BaseApi.get('/outlets', getApiConfig());
+        if (res.data?.success) {
+          setOutlets(res.data.data || []);
+        }
+      } catch (err) {
+        console.error('Error fetching outlets:', err);
+        toastError('Gagal memuat daftar outlet');
+      } finally {
+        setOutletLoading(false);
+      }
+    };
+
+    fetchOutlets();
+  }, [companyId]);
+
+  const WAREHOUSE_TYPE_OPTIONS = [
+    { label: 'Utama', value: 'UTAMA' },
+    { label: 'Cabang', value: 'CABANG' },
+    { label: 'Retail', value: 'RETAIL' },
+    { label: 'Virtual', value: 'VIRTUAL' },
+  ];
+
   const handleCreate = async () => {
-    if (!name.trim()) {
-      toastError('Nama gudang tidak boleh kosong');
+    if (!name.trim() || selectedOutlet === null || warehouseType === null) {
+      toastError('Nama gudang, outlet, dan tipe gudang tidak boleh kosong');
       return;
     }
 
     setLoading(true);
     try {
       const payload = {
-        company_id: companyId,
         name: name.trim(),
         code: code.trim() || null,
-        address: address.trim() || null,
+        outletId: selectedOutlet?.id || null,
+        type: warehouseType || null,
       };
 
       const response = await BaseApi.post(
@@ -78,6 +111,22 @@ export default function MasterGudangCreate({ navigation, route }) {
 
         <View style={styles.formContainer}>
           <View style={styles.formGroup}>
+            <Text style={styles.label}>Pilih Outlet</Text>
+            <TouchableOpacity
+              style={styles.select}
+              onPress={() => setOutletModalVisible(true)}
+            >
+              {outletLoading ? (
+                <ActivityIndicator />
+              ) : (
+                <Text style={styles.selectText}>
+                  {selectedOutlet ? `${selectedOutlet.name}` : 'Pilih outlet'}
+                </Text>
+              )}
+              <Icon name="chevron-down" size={20} color="#64748b" />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.formGroup}>
             <Text style={styles.label}>Nama Gudang *</Text>
             <TextInput
               style={styles.input}
@@ -105,19 +154,89 @@ export default function MasterGudangCreate({ navigation, route }) {
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Alamat</Text>
-            <TextInput
-              ref={addressRef}
-              style={[styles.input, styles.textArea]}
-              placeholder="Masukkan alamat gudang (optional)"
-              value={address}
-              onChangeText={setAddress}
-              placeholderTextColor="#cbd5e1"
-              multiline
-              numberOfLines={4}
-              textAlignVertical="top"
-            />
+            <Text style={styles.label}>Tipe Gudang</Text>
+            <TouchableOpacity
+              style={styles.select}
+              onPress={() => setTypeModalVisible(true)}
+            >
+              <Text style={styles.selectText}>
+                {warehouseType
+                  ? WAREHOUSE_TYPE_OPTIONS.find(o => o.value === warehouseType)
+                      ?.label
+                  : 'Pilih tipe gudang'}
+              </Text>
+              <Icon name="chevron-down" size={20} color="#64748b" />
+            </TouchableOpacity>
           </View>
+
+          <Modal
+            visible={outletModalVisible}
+            animationType="slide"
+            transparent={false}
+            onRequestClose={() => setOutletModalVisible(false)}
+          >
+            <View style={styles.modalContainer}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.pageTitle}>Pilih Outlet</Text>
+                <TouchableOpacity onPress={() => setOutletModalVisible(false)}>
+                  <Icon name="close" size={24} color="#0f172a" />
+                </TouchableOpacity>
+              </View>
+              {outletLoading ? (
+                <ActivityIndicator size="large" color="#FF6F00" />
+              ) : (
+                <FlatList
+                  data={outlets}
+                  keyExtractor={item => item.id.toString()}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      style={styles.modalItem}
+                      onPress={() => {
+                        setSelectedOutlet(item);
+                        setOutletModalVisible(false);
+                      }}
+                    >
+                      <Text style={styles.modalItemText}>{item.name}</Text>
+                      <Text style={styles.modalItemSub}>
+                        {item.code || '-'}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                />
+              )}
+            </View>
+          </Modal>
+
+          <Modal
+            visible={typeModalVisible}
+            animationType="slide"
+            transparent={false}
+            onRequestClose={() => setTypeModalVisible(false)}
+          >
+            <View style={styles.modalContainer}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.pageTitle}>Pilih Tipe Gudang</Text>
+                <TouchableOpacity onPress={() => setTypeModalVisible(false)}>
+                  <Icon name="close" size={24} color="#0f172a" />
+                </TouchableOpacity>
+              </View>
+              <FlatList
+                data={WAREHOUSE_TYPE_OPTIONS}
+                keyExtractor={item => item.value}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={styles.modalItem}
+                    onPress={() => {
+                      setWarehouseType(item.value);
+                      setTypeModalVisible(false);
+                    }}
+                  >
+                    <Text style={styles.modalItemText}>{item.label}</Text>
+                  </TouchableOpacity>
+                )}
+              />
+            </View>
+          </Modal>
 
           <TouchableOpacity
             style={[styles.submitBtn, loading && styles.submitBtnDisabled]}
@@ -185,6 +304,21 @@ const styles = StyleSheet.create({
     color: '#0f172a',
     marginBottom: 8,
   },
+  select: {
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  selectText: {
+    fontSize: 14,
+    color: '#0f172a',
+  },
   input: {
     backgroundColor: '#f8fafc',
     borderWidth: 1,
@@ -216,5 +350,35 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: '#f3f6fb',
+    padding: 16,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  modalItem: {
+    backgroundColor: '#fff',
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#e6eef8',
+  },
+  modalItemText: {
+    fontSize: 16,
+    color: '#0f172a',
+    fontWeight: '600',
+  },
+  modalItemSub: {
+    fontSize: 12,
+    color: '#64748b',
+    marginTop: 4,
   },
 });

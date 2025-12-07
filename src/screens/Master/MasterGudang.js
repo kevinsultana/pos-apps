@@ -34,7 +34,6 @@ export default function MasterGudang({ navigation, route }) {
       if (response.data.success) {
         setGudangList(response.data.data || []);
       }
-      console.log(response.data);
     } catch (error) {
       console.error('Error fetching gudang:', error);
       toastError('Gagal memuat data gudang');

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import {
   StyleSheet,
   Text,
@@ -6,138 +6,165 @@ import {
   TextInput,
   TouchableOpacity,
   FlatList,
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import AppLayout from '../../components/AppLayout';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import ModalCamera from '../../components/ModalCamera';
 import ButtonBack from '../../components/ButtonBack';
+import BaseApi from '../../api/BaseApi';
+import { useAuth } from '../../context/AuthContext';
+import { toastError } from '../../utils/toast';
 import { widthPercentageToDP } from 'react-native-responsive-screen';
 
 const PRIMARY = '#1E88E5';
 const CARD_BG = '#ffffff';
 
-const sampleProducts = [
-  {
-    id: 'SKU-001',
-    name: 'Indomie Goreng',
-    variant: 'Original 85g',
-    sku: 'SKU-001',
-    barcode: '8992718850012',
-    category: 'Mie Instan',
-    supplier: 'PT Indofood CBP',
-    stock: 124,
-    unit: 'pcs',
-    priceSell: 3800,
-    priceBuy: 3200,
-  },
-  {
-    id: 'SKU-002',
-    name: 'Teh Botol Sosro',
-    variant: 'Botol 350ml',
-    sku: 'SKU-002',
-    barcode: '8996001600042',
-    category: 'Minuman',
-    supplier: 'Sinar Sosro',
-    stock: 56,
-    unit: 'btl',
-    priceSell: 5000,
-    priceBuy: 4200,
-  },
-  {
-    id: 'SKU-003',
-    name: 'Gulaku',
-    variant: 'Putih 1kg',
-    sku: 'SKU-003',
-    barcode: '8991234567890',
-    category: 'Bahan Pokok',
-    supplier: 'Gulaku',
-    stock: 28,
-    unit: 'sak',
-    priceSell: 14500,
-    priceBuy: 13000,
-  },
-  {
-    id: 'SKU-004',
-    name: 'Kopi Kapal Api',
-    variant: 'Special 165g',
-    sku: 'SKU-004',
-    barcode: '8991002100165',
-    category: 'Kopi',
-    supplier: 'PT Santos Jaya Abadi',
-    stock: 73,
-    unit: 'pcs',
-    priceSell: 17000,
-    priceBuy: 15000,
-  },
-];
-
 export default function MasterProduct({ navigation, route }) {
+  const { getApiConfig, companyId } = useAuth();
   const [query, setQuery] = useState('');
   const [showCam, setShowCam] = useState(false);
-  const [products, setProducts] = useState(sampleProducts);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchProducts();
+    }, [companyId]),
+  );
+
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      const response = await BaseApi.get('/products', getApiConfig());
+
+      if (response.data?.success) {
+        setProducts(response.data.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      toastError('Gagal memuat data produk');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchProducts();
+    setRefreshing(false);
+  };
+
+  const renderEmpty = () => (
+    <View style={styles.emptyContainer}>
+      <Icon name="cube-outline" size={64} color="#cbd5e1" />
+      <Text style={styles.emptyTitle}>
+        {query ? 'Produk tidak ditemukan' : 'Belum ada produk'}
+      </Text>
+      <Text style={styles.emptySubtitle}>
+        {query
+          ? 'Coba ubah kata kunci pencarian atau tambahkan produk baru'
+          : 'Tambahkan produk pertama Anda untuk memulai'}
+      </Text>
+      {!query && (
+        <TouchableOpacity
+          style={styles.emptyBtn}
+          onPress={() =>
+            navigation.navigate('MasterProductCreate', {
+              onSave: () => {
+                fetchProducts();
+              },
+            })
+          }
+        >
+          <Icon name="plus" size={20} color="#fff" />
+          <Text style={styles.emptyBtnText}>Tambah Produk</Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return products;
-    return products.filter(p =>
-      [p.name, p.variant, p.sku, p.barcode, p.category, p.supplier]
-        .filter(Boolean)
-        .some(v => String(v).toLowerCase().includes(q)),
+    return products.filter(
+      p =>
+        [p.name, p.code]
+          .filter(Boolean)
+          .some(v => String(v).toLowerCase().includes(q)) ||
+        p.variants.some(
+          v =>
+            [v.name, v.sku]
+              .filter(Boolean)
+              .some(vv => String(vv).toLowerCase().includes(q)) ||
+            v.barcodes.some(b => String(b.barcode).toLowerCase().includes(q)),
+        ),
     );
   }, [query, products]);
 
-  const renderItem = ({ item }) => (
-    <View style={styles.card}>
-      <View style={styles.cardHeader}>
-        <View style={[styles.thumb, { backgroundColor: '#e8f2fe' }]}>
-          <Icon name="cube-outline" size={20} color={PRIMARY} />
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.name}>{item.name}</Text>
-          <Text style={styles.variant}>{item.variant}</Text>
-          <View style={styles.metaRow}>
-            <View style={styles.badgeNeutral}>
-              <Icon name="barcode" color="#64748b" size={12} />
-              <Text style={styles.badgeNeutralText}>{item.barcode}</Text>
+  const renderItem = ({ item }) => {
+    const firstVariant = item.variants?.[0];
+    const variantCount = item.variants?.length || 0;
+
+    return (
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <View style={[styles.thumb, { backgroundColor: '#e8f2fe' }]}>
+            <Icon name="cube-outline" size={20} color={PRIMARY} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.name}>{item.name}</Text>
+            <Text style={styles.variant}>
+              {firstVariant?.name || 'No variant'} • {variantCount} variant
+              {variantCount !== 1 ? 's' : ''}
+            </Text>
+            <View style={styles.metaRow}>
+              <View style={styles.badgeNeutral}>
+                <Icon name="barcode" color="#64748b" size={12} />
+                <Text style={styles.badgeNeutralText}>{item.code}</Text>
+              </View>
+              <View style={styles.dot} />
+              <Text style={styles.metaText}>
+                SKU {firstVariant?.sku || 'N/A'}
+              </Text>
             </View>
-            <View style={styles.dot} />
-            <Text style={styles.metaText}>{item.category}</Text>
-            <View style={styles.dot} />
-            <Text style={styles.metaText}>SKU {item.sku}</Text>
+          </View>
+          <View style={styles.stockBox}>
+            <Text style={styles.stockVal}>{variantCount}</Text>
+            <Text style={styles.stockUnit}>var</Text>
           </View>
         </View>
-        <View style={styles.stockBox}>
-          <Text style={styles.stockVal}>{item.stock}</Text>
-          <Text style={styles.stockUnit}>{item.unit}</Text>
+
+        <View style={styles.divider} />
+
+        <View style={styles.cardFooter}>
+          <View style={styles.priceGroup}>
+            <View style={styles.pricePillSell}>
+              <Text style={styles.pricePillLabel}>Harga Jual</Text>
+              <Text style={styles.pricePillValue}>
+                Rp {formatPrice(firstVariant?.sellPrice || 0)}
+              </Text>
+            </View>
+            <View style={styles.pricePillBuy}>
+              <Text style={styles.pricePillLabel}>Harga Beli</Text>
+              <Text style={styles.pricePillValue}>
+                Rp {formatPrice(firstVariant?.costPrice || 0)}
+              </Text>
+            </View>
+          </View>
+          <TouchableOpacity
+            style={styles.moreBtn}
+            onPress={() => navigation.navigate('MasterProductEdit', { item })}
+          >
+            <Icon name="pencil" size={20} color="#64748b" />
+          </TouchableOpacity>
         </View>
       </View>
-
-      <View style={styles.divider} />
-
-      <View style={styles.cardFooter}>
-        <View style={styles.priceGroup}>
-          <View style={styles.pricePillSell}>
-            <Text style={styles.pricePillLabel}>Harga Jual</Text>
-            <Text style={styles.pricePillValue}>
-              Rp {formatPrice(item.priceSell)}
-            </Text>
-          </View>
-          <View style={styles.pricePillBuy}>
-            <Text style={styles.pricePillLabel}>Harga Beli</Text>
-            <Text style={styles.pricePillValue}>
-              Rp {formatPrice(item.priceBuy)}
-            </Text>
-          </View>
-        </View>
-        <TouchableOpacity
-          style={styles.moreBtn}
-          onPress={() => navigation.navigate('MasterProductEdit', { item })}
-        >
-          <Icon name="pencil" size={20} color="#64748b" />
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
+    );
+  };
 
   return (
     <AppLayout navigation={navigation} route={route}>
@@ -175,11 +202,8 @@ export default function MasterProduct({ navigation, route }) {
             style={styles.addBtn}
             onPress={() =>
               navigation.navigate('MasterProductCreate', {
-                onSave: payload => {
-                  const id =
-                    payload.sku ||
-                    `SKU-${String(products.length + 1).padStart(3, '0')}`;
-                  setProducts(prev => [...prev, { id, ...payload }]);
+                onSave: () => {
+                  fetchProducts(); // Refresh data after adding new product
                 },
               })
             }
@@ -194,7 +218,18 @@ export default function MasterProduct({ navigation, route }) {
           keyExtractor={item => item.id}
           renderItem={renderItem}
           contentContainerStyle={styles.listContent}
+          ListEmptyComponent={renderEmpty}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
         />
+
+        {loading && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={PRIMARY} />
+            <Text style={styles.loadingText}>Memuat produk...</Text>
+          </View>
+        )}
 
         <ModalCamera
           visible={showCam}
@@ -381,5 +416,57 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#64748b',
     marginLeft: 4,
+  },
+  loadingContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#64748b',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+    paddingHorizontal: 20,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#0f172a',
+    marginTop: 16,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    color: '#64748b',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  emptyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: PRIMARY,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginTop: 24,
+    elevation: 3,
+  },
+  emptyBtnText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
   },
 });

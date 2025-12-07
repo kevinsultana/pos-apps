@@ -8,25 +8,54 @@ import {
   ToastAndroid,
   Platform,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import AppLayout from '../../components/AppLayout';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import BaseApi from '../../api/BaseApi';
+import { useAuth } from '../../context/AuthContext';
+import { toastSuccess, toastError } from '../../utils/toast';
 
 const PRIMARY = '#1E88E5';
 
 export default function MasterSatuanCreate({ navigation, route }) {
+  const { getApiConfig, companyId } = useAuth();
   const [name, setName] = useState('');
   const [symbol, setSymbol] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const canSave = name.trim().length > 0 && symbol.trim().length > 0;
+  const canSave =
+    name.trim().length > 0 && symbol.trim().length > 0 && !loading;
 
-  const handleSave = () => {
-    if (!canSave) return;
-    route.params?.onSave?.({ name: name.trim(), symbol: symbol.trim() });
-    if (Platform.OS === 'android') {
-      ToastAndroid.show('Satuan berhasil ditambahkan', ToastAndroid.SHORT);
+  const handleSave = async () => {
+    if (!canSave || loading) return;
+
+    setLoading(true);
+    try {
+      const payload = {
+        company_id: companyId,
+        name: name.trim(),
+        symbol: symbol.trim(),
+      };
+
+      const response = await BaseApi.post('/units', payload, getApiConfig());
+
+      if (response.data?.success) {
+        toastSuccess('Satuan berhasil ditambahkan');
+        route.params?.onSave?.();
+        navigation.goBack();
+      } else {
+        const msg = response.data?.message || 'Gagal menambahkan satuan';
+        toastError(msg);
+      }
+    } catch (error) {
+      console.error('Error creating unit:', error);
+      const message =
+        error?.response?.data?.message || 'Gagal menambahkan satuan';
+      toastError(message);
+    } finally {
+      setLoading(false);
     }
-    navigation.goBack();
   };
 
   return (
@@ -81,7 +110,11 @@ export default function MasterSatuanCreate({ navigation, route }) {
               onPress={handleSave}
               disabled={!canSave}
             >
-              <Text style={styles.btnSaveText}>Simpan</Text>
+              {loading ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text style={styles.btnSaveText}>Simpan</Text>
+              )}
             </TouchableOpacity>
           </View>
         </View>

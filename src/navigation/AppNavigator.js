@@ -8,7 +8,6 @@ import RegisterScreen from '../screens/RegisterScreen';
 import PosScreen from '../screens/PosScreen';
 import MasterScreen from '../screens/MasterScreen';
 import MasterProduct from '../screens/Master/MasterProduct';
-import MasterProductEdit from '../screens/Master/MasterProductEdit';
 import MasterProductCreate from '../screens/Master/MasterProductCreate';
 import MasterPelanggan from '../screens/Master/MasterPelanggan';
 import MasterPelangganCreate from '../screens/Master/MasterPelangganCreate';
@@ -20,7 +19,6 @@ import MasterKategori from '../screens/Master/MasterKategori';
 import MasterKategoriCreate from '../screens/Master/MasterKategoriCreate';
 import MasterSatuan from '../screens/Master/MasterSatuan';
 import MasterSatuanCreate from '../screens/Master/MasterSatuanCreate';
-import MasterSatuanEdit from '../screens/Master/MasterSatuanEdit';
 import MasterPayment from '../screens/Master/MasterPayment';
 import MasterPaymentCreate from '../screens/Master/MasterPaymentCreate';
 import MasterPaymentEdit from '../screens/Master/MasterPaymentEdit';
@@ -73,7 +71,6 @@ export default function AppNavigator() {
       <Stack.Screen name="Sales" component={SalesScreen} />
       <Stack.Screen name="Master" component={MasterScreen} />
       <Stack.Screen name="MasterProduct" component={MasterProduct} />
-      <Stack.Screen name="MasterProductEdit" component={MasterProductEdit} />
       <Stack.Screen
         name="MasterProductCreate"
         component={MasterProductCreate}
@@ -100,7 +97,6 @@ export default function AppNavigator() {
       />
       <Stack.Screen name="MasterSatuan" component={MasterSatuan} />
       <Stack.Screen name="MasterSatuanCreate" component={MasterSatuanCreate} />
-      <Stack.Screen name="MasterSatuanEdit" component={MasterSatuanEdit} />
       <Stack.Screen name="MasterPayment" component={MasterPayment} />
       <Stack.Screen
         name="MasterPaymentCreate"
