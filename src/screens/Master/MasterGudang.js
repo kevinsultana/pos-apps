@@ -15,33 +15,33 @@ import { useAuth } from '../../context/AuthContext';
 import { toastError, toastSuccess } from '../../utils/toast';
 import ButtonBack from '../../components/ButtonBack';
 
-export default function MasterMerek({ navigation, route }) {
+export default function MasterGudang({ navigation, route }) {
   const { getApiConfig, companyId } = useAuth();
-  const [merekList, setMerekList] = useState([]);
+  const [gudangList, setGudangList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
-      fetchMerek();
+      fetchGudang();
     }, [companyId]),
   );
 
-  const fetchMerek = async () => {
+  const fetchGudang = async () => {
     try {
       setLoading(true);
       const response = await BaseApi.get(
-        `/brands`,
+        '/warehouses',
         getApiConfig({
           params: { company_id: companyId },
         }),
       );
       if (response.data.success) {
-        setMerekList(response.data.data || []);
+        setGudangList(response.data.data || []);
       }
     } catch (error) {
-      console.error('Error fetching merek:', error);
-      toastError('Gagal memuat data merk');
+      console.error('Error fetching gudang:', error);
+      toastError('Gagal memuat data gudang');
     } finally {
       setLoading(false);
     }
@@ -49,22 +49,22 @@ export default function MasterMerek({ navigation, route }) {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await fetchMerek();
+    await fetchGudang();
     setRefreshing(false);
   };
 
-  const renderMerekItem = ({ item }) => (
+  const renderGudangItem = ({ item }) => (
     <View style={styles.card}>
       <View style={styles.cardContent}>
         <View style={styles.iconContainer}>
-          <Icon name="trademark" size={24} color="#E91E63" />
+          <Icon name="warehouse" size={24} color="#FF6F00" />
         </View>
         <View style={styles.textContainer}>
-          <Text style={styles.merekName}>{item.name}</Text>
-          <Text style={styles.merekCode}>{item.code || '-'}</Text>
-          {item.description && (
-            <Text style={styles.merekDesc} numberOfLines={1}>
-              {item.description}
+          <Text style={styles.gudangName}>{item.name}</Text>
+          <Text style={styles.gudangCode}>{item.code || '-'}</Text>
+          {item.address && (
+            <Text style={styles.gudangAddr} numberOfLines={1}>
+              {item.address}
             </Text>
           )}
         </View>
@@ -75,18 +75,18 @@ export default function MasterMerek({ navigation, route }) {
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
       <Icon name="inbox-outline" size={64} color="#cbd5e1" />
-      <Text style={styles.emptyText}>Tidak ada data merk</Text>
+      <Text style={styles.emptyText}>Tidak ada data gudang</Text>
       <Text style={styles.emptySubtext}>
-        Tap tombol + untuk menambah merk baru
+        Tap tombol + untuk menambah gudang baru
       </Text>
     </View>
   );
 
-  if (loading && merekList.length === 0) {
+  if (loading && gudangList.length === 0) {
     return (
       <AppLayout navigation={navigation} route={route}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#E91E63" />
+          <ActivityIndicator size="large" color="#FF6F00" />
         </View>
       </AppLayout>
     );
@@ -98,23 +98,25 @@ export default function MasterMerek({ navigation, route }) {
         <View style={styles.header}>
           <ButtonBack onPress={() => navigation.goBack()} type="large" />
           <View style={styles.headerCenter}>
-            <Text style={styles.pageTitle}>Master Merk</Text>
-            <Text style={styles.pageSubtitle}>Kelola data merk produk</Text>
+            <Text style={styles.pageTitle}>Master Gudang</Text>
+            <Text style={styles.pageSubtitle}>
+              Kelola data gudang penyimpanan
+            </Text>
           </View>
           <TouchableOpacity
             style={styles.addBtn}
-            onPress={() => navigation.navigate('MasterMerekCreate')}
+            onPress={() => navigation.navigate('MasterGudangCreate')}
           >
             <Icon name="plus" size={24} color="#fff" />
           </TouchableOpacity>
         </View>
 
-        {merekList.length === 0 ? (
+        {gudangList.length === 0 ? (
           renderEmptyState()
         ) : (
           <FlatList
-            data={merekList}
-            renderItem={renderMerekItem}
+            data={gudangList}
+            renderItem={renderGudangItem}
             keyExtractor={item => item.id.toString()}
             contentContainerStyle={styles.listContainer}
             onRefresh={onRefresh}
@@ -160,13 +162,13 @@ const styles = StyleSheet.create({
     color: '#64748b',
   },
   addBtn: {
-    backgroundColor: '#E91E63',
+    backgroundColor: '#FF6F00',
     width: 48,
     height: 48,
     borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#E91E63',
+    shadowColor: '#FF6F00',
     shadowOpacity: 0.3,
     shadowOffset: { width: 0, height: 4 },
     shadowRadius: 8,
@@ -198,7 +200,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 8,
-    backgroundColor: '#f3e5f5',
+    backgroundColor: '#fff3e0',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -206,18 +208,18 @@ const styles = StyleSheet.create({
   textContainer: {
     flex: 1,
   },
-  merekName: {
+  gudangName: {
     fontSize: 16,
     fontWeight: '600',
     color: '#0f172a',
     marginBottom: 4,
   },
-  merekCode: {
+  gudangCode: {
     fontSize: 12,
     color: '#64748b',
     marginBottom: 4,
   },
-  merekDesc: {
+  gudangAddr: {
     fontSize: 12,
     color: '#94a3b8',
   },

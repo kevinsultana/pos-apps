@@ -60,6 +60,20 @@ export default function MasterScreen({ navigation, route }) {
       color: '#F44336',
       onPress: () => navigation.navigate('MasterPayment'),
     },
+    {
+      id: '8',
+      title: 'Gudang',
+      icon: 'warehouse',
+      color: '#FF6F00',
+      onPress: () => navigation.navigate('MasterGudang'),
+    },
+    {
+      id: '9',
+      title: 'Stok',
+      icon: 'package-multiple',
+      color: '#7CB342',
+      onPress: () => navigation.navigate('MasterStok'),
+    },
   ];
 
   const renderMenuItem = ({ item }) => (

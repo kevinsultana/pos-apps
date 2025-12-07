@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -14,40 +14,44 @@ import BaseApi from '../../api/BaseApi';
 import { useAuth } from '../../context/AuthContext';
 import { toastError, toastSuccess } from '../../utils/toast';
 
-export default function MasterMerekEdit({ navigation, route }) {
-  const { getApiConfig } = useAuth();
-  const { merek } = route.params;
-  const [name, setName] = useState(merek?.name || '');
-  const [code, setCode] = useState(merek?.code || '');
+export default function MasterGudangCreate({ navigation, route }) {
+  const { getApiConfig, companyId } = useAuth();
+  const [name, setName] = useState('');
+  const [code, setCode] = useState('');
+  const [address, setAddress] = useState('');
   const [loading, setLoading] = useState(false);
   const codeRef = useRef(null);
+  const addressRef = useRef(null);
 
-  const handleUpdate = async () => {
+  const handleCreate = async () => {
     if (!name.trim()) {
-      toastError('Nama merk tidak boleh kosong');
+      toastError('Nama gudang tidak boleh kosong');
       return;
     }
 
     setLoading(true);
     try {
       const payload = {
+        company_id: companyId,
         name: name.trim(),
         code: code.trim() || null,
+        address: address.trim() || null,
       };
 
-      const response = await BaseApi.put(
-        `/brands/${merek.id}`,
+      const response = await BaseApi.post(
+        '/warehouses',
         payload,
         getApiConfig(),
       );
 
       if (response.data.success) {
-        toastSuccess('Merk berhasil diubah');
+        toastSuccess('Gudang berhasil ditambahkan');
         navigation.goBack();
       }
     } catch (error) {
-      console.error('Error updating merek:', error);
-      const message = error?.response?.data?.message || 'Gagal mengubah merk';
+      console.error('Error creating gudang:', error);
+      const message =
+        error?.response?.data?.message || 'Gagal menambahkan gudang';
       toastError(message);
     } finally {
       setLoading(false);
@@ -65,17 +69,19 @@ export default function MasterMerekEdit({ navigation, route }) {
             <Icon name="arrow-left" size={24} color="#0f172a" />
           </TouchableOpacity>
           <View>
-            <Text style={styles.pageTitle}>Edit Merk</Text>
-            <Text style={styles.pageSubtitle}>Ubah data merk produk</Text>
+            <Text style={styles.pageTitle}>Tambah Gudang</Text>
+            <Text style={styles.pageSubtitle}>
+              Tambahkan gudang penyimpanan baru
+            </Text>
           </View>
         </View>
 
         <View style={styles.formContainer}>
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Nama Merk *</Text>
+            <Text style={styles.label}>Nama Gudang *</Text>
             <TextInput
               style={styles.input}
-              placeholder="Masukkan nama merk"
+              placeholder="Masukkan nama gudang"
               value={name}
               onChangeText={setName}
               placeholderTextColor="#cbd5e1"
@@ -85,22 +91,37 @@ export default function MasterMerekEdit({ navigation, route }) {
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Kode Merk</Text>
+            <Text style={styles.label}>Kode Gudang</Text>
             <TextInput
               ref={codeRef}
               style={styles.input}
-              placeholder="Masukkan kode merk (optional)"
+              placeholder="Masukkan kode gudang (optional)"
               value={code}
               onChangeText={setCode}
               placeholderTextColor="#cbd5e1"
               returnKeyType="next"
-              onSubmitEditing={() => descriptionRef.current?.focus()}
+              onSubmitEditing={() => addressRef.current?.focus()}
+            />
+          </View>
+
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Alamat</Text>
+            <TextInput
+              ref={addressRef}
+              style={[styles.input, styles.textArea]}
+              placeholder="Masukkan alamat gudang (optional)"
+              value={address}
+              onChangeText={setAddress}
+              placeholderTextColor="#cbd5e1"
+              multiline
+              numberOfLines={4}
+              textAlignVertical="top"
             />
           </View>
 
           <TouchableOpacity
             style={[styles.submitBtn, loading && styles.submitBtnDisabled]}
-            onPress={handleUpdate}
+            onPress={handleCreate}
             disabled={loading}
           >
             {loading ? (
@@ -108,7 +129,7 @@ export default function MasterMerekEdit({ navigation, route }) {
             ) : (
               <>
                 <Icon name="check" size={20} color="#fff" />
-                <Text style={styles.submitBtnText}>Simpan Perubahan</Text>
+                <Text style={styles.submitBtnText}>Simpan</Text>
               </>
             )}
           </TouchableOpacity>
@@ -174,8 +195,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#0f172a',
   },
+  textArea: {
+    height: 100,
+    paddingTop: 10,
+  },
   submitBtn: {
-    backgroundColor: '#E91E63',
+    backgroundColor: '#FF6F00',
     borderRadius: 8,
     paddingVertical: 12,
     flexDirection: 'row',

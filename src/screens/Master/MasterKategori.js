@@ -1,36 +1,60 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   StyleSheet,
   Text,
   View,
   FlatList,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import AppLayout from '../../components/AppLayout';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import ButtonBack from '../../components/ButtonBack';
+import BaseApi from '../../api/BaseApi';
+import { useAuth } from '../../context/AuthContext';
+import { toastError } from '../../utils/toast';
 
 const PRIMARY = '#1E88E5';
 
 export default function MasterKategori({ navigation, route }) {
-  const [categories, setCategories] = useState([
-    { id: 'KAT-001', name: 'Makanan', description: 'Produk makanan dan snack' },
-    {
-      id: 'KAT-002',
-      name: 'Minuman',
-      description: 'Minuman kemasan dan segar',
-    },
-    {
-      id: 'KAT-003',
-      name: 'Sembako',
-      description: 'Kebutuhan pokok sehari-hari',
-    },
-    {
-      id: 'KAT-004',
-      name: 'Alat Tulis',
-      description: 'Perlengkapan tulis dan kantor',
-    },
-  ]);
+  const { getApiConfig, companyId } = useAuth();
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchCategories();
+    }, [companyId]),
+  );
+
+  const fetchCategories = async () => {
+    try {
+      setLoading(true);
+      const response = await BaseApi.get(
+        '/categories',
+        getApiConfig({
+          params: { company_id: companyId },
+        }),
+      );
+
+      if (response.data?.success) {
+        setCategories(response.data.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      toastError('Gagal memuat data kategori');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchCategories();
+    setRefreshing(false);
+  };
 
   const addCategory = payload => {
     const id = `KAT-${String(categories.length + 1).padStart(3, '0')}`;
@@ -99,12 +123,31 @@ export default function MasterKategori({ navigation, route }) {
           </TouchableOpacity>
         </View>
 
-        <FlatList
-          data={categories}
-          keyExtractor={item => item.id}
-          renderItem={renderItem}
-          contentContainerStyle={styles.listContent}
-        />
+        {loading && categories.length === 0 ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={PRIMARY} />
+          </View>
+        ) : (
+          <FlatList
+            data={categories}
+            keyExtractor={item => String(item.id)}
+            renderItem={renderItem}
+            contentContainerStyle={styles.listContent}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            ListEmptyComponent={
+              !loading ? (
+                <View style={styles.emptyContainer}>
+                  <Icon name="inbox-outline" size={64} color="#cbd5e1" />
+                  <Text style={styles.emptyText}>Tidak ada data kategori</Text>
+                  <Text style={styles.emptySubtext}>
+                    Tap tombol + untuk menambah kategori baru
+                  </Text>
+                </View>
+              ) : null
+            }
+          />
+        )}
       </View>
     </AppLayout>
   );
@@ -112,6 +155,11 @@ export default function MasterKategori({ navigation, route }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f3f6fb', padding: 20 },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -150,4 +198,21 @@ const styles = StyleSheet.create({
   desc: { color: '#64748b', fontSize: 12, marginTop: 4 },
   actions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   iconBtn: { padding: 6 },
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+  },
+  emptyText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#0f172a',
+    marginTop: 12,
+    marginBottom: 4,
+  },
+  emptySubtext: {
+    fontSize: 13,
+    color: '#64748b',
+  },
 });

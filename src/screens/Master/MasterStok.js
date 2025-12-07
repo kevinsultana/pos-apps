@@ -15,33 +15,33 @@ import { useAuth } from '../../context/AuthContext';
 import { toastError, toastSuccess } from '../../utils/toast';
 import ButtonBack from '../../components/ButtonBack';
 
-export default function MasterMerek({ navigation, route }) {
+export default function MasterStok({ navigation, route }) {
   const { getApiConfig, companyId } = useAuth();
-  const [merekList, setMerekList] = useState([]);
+  const [stokList, setStokList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
-      fetchMerek();
+      fetchStok();
     }, [companyId]),
   );
 
-  const fetchMerek = async () => {
+  const fetchStok = async () => {
     try {
       setLoading(true);
       const response = await BaseApi.get(
-        `/brands`,
+        '/stocks',
         getApiConfig({
           params: { company_id: companyId },
         }),
       );
       if (response.data.success) {
-        setMerekList(response.data.data || []);
+        setStokList(response.data.data || []);
       }
     } catch (error) {
-      console.error('Error fetching merek:', error);
-      toastError('Gagal memuat data merk');
+      console.error('Error fetching stok:', error);
+      toastError('Gagal memuat data stok');
     } finally {
       setLoading(false);
     }
@@ -49,24 +49,25 @@ export default function MasterMerek({ navigation, route }) {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await fetchMerek();
+    await fetchStok();
     setRefreshing(false);
   };
 
-  const renderMerekItem = ({ item }) => (
+  const renderStokItem = ({ item }) => (
     <View style={styles.card}>
       <View style={styles.cardContent}>
         <View style={styles.iconContainer}>
-          <Icon name="trademark" size={24} color="#E91E63" />
+          <Icon name="package-multiple" size={24} color="#7CB342" />
         </View>
         <View style={styles.textContainer}>
-          <Text style={styles.merekName}>{item.name}</Text>
-          <Text style={styles.merekCode}>{item.code || '-'}</Text>
-          {item.description && (
-            <Text style={styles.merekDesc} numberOfLines={1}>
-              {item.description}
+          <Text style={styles.stokName}>{item.product_name || 'Produk'}</Text>
+          <View style={styles.detailRow}>
+            <Text style={styles.stokDetail}>
+              Gudang: {item.warehouse_name || '-'}
             </Text>
-          )}
+            <Text style={styles.stokDetail}>Qty: {item.quantity || 0}</Text>
+          </View>
+          {item.unit && <Text style={styles.stokUnit}>{item.unit}</Text>}
         </View>
       </View>
     </View>
@@ -75,18 +76,18 @@ export default function MasterMerek({ navigation, route }) {
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
       <Icon name="inbox-outline" size={64} color="#cbd5e1" />
-      <Text style={styles.emptyText}>Tidak ada data merk</Text>
+      <Text style={styles.emptyText}>Tidak ada data stok</Text>
       <Text style={styles.emptySubtext}>
-        Tap tombol + untuk menambah merk baru
+        Tap tombol + untuk menambah stok baru
       </Text>
     </View>
   );
 
-  if (loading && merekList.length === 0) {
+  if (loading && stokList.length === 0) {
     return (
       <AppLayout navigation={navigation} route={route}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#E91E63" />
+          <ActivityIndicator size="large" color="#7CB342" />
         </View>
       </AppLayout>
     );
@@ -98,23 +99,23 @@ export default function MasterMerek({ navigation, route }) {
         <View style={styles.header}>
           <ButtonBack onPress={() => navigation.goBack()} type="large" />
           <View style={styles.headerCenter}>
-            <Text style={styles.pageTitle}>Master Merk</Text>
-            <Text style={styles.pageSubtitle}>Kelola data merk produk</Text>
+            <Text style={styles.pageTitle}>Master Stok</Text>
+            <Text style={styles.pageSubtitle}>Kelola data stok produk</Text>
           </View>
           <TouchableOpacity
             style={styles.addBtn}
-            onPress={() => navigation.navigate('MasterMerekCreate')}
+            onPress={() => navigation.navigate('MasterStokCreate')}
           >
             <Icon name="plus" size={24} color="#fff" />
           </TouchableOpacity>
         </View>
 
-        {merekList.length === 0 ? (
+        {stokList.length === 0 ? (
           renderEmptyState()
         ) : (
           <FlatList
-            data={merekList}
-            renderItem={renderMerekItem}
+            data={stokList}
+            renderItem={renderStokItem}
             keyExtractor={item => item.id.toString()}
             contentContainerStyle={styles.listContainer}
             onRefresh={onRefresh}
@@ -160,13 +161,13 @@ const styles = StyleSheet.create({
     color: '#64748b',
   },
   addBtn: {
-    backgroundColor: '#E91E63',
+    backgroundColor: '#7CB342',
     width: 48,
     height: 48,
     borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#E91E63',
+    shadowColor: '#7CB342',
     shadowOpacity: 0.3,
     shadowOffset: { width: 0, height: 4 },
     shadowRadius: 8,
@@ -198,7 +199,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 8,
-    backgroundColor: '#f3e5f5',
+    backgroundColor: '#f1f5e9',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -206,19 +207,23 @@ const styles = StyleSheet.create({
   textContainer: {
     flex: 1,
   },
-  merekName: {
+  stokName: {
     fontSize: 16,
     fontWeight: '600',
     color: '#0f172a',
     marginBottom: 4,
   },
-  merekCode: {
-    fontSize: 12,
-    color: '#64748b',
+  detailRow: {
+    flexDirection: 'row',
     marginBottom: 4,
   },
-  merekDesc: {
+  stokDetail: {
     fontSize: 12,
+    color: '#64748b',
+    marginRight: 12,
+  },
+  stokUnit: {
+    fontSize: 11,
     color: '#94a3b8',
   },
   emptyContainer: {
