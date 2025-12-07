@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,7 +7,12 @@ import {
   TouchableOpacity,
   ToastAndroid,
   Platform,
+  ScrollView,
+  ActivityIndicator,
 } from 'react-native';
+import BaseApi from '../../api/BaseApi';
+import { useAuth } from '../../context/AuthContext';
+import { toastError, toastSuccess } from '../../utils/toast';
 import AppLayout from '../../components/AppLayout';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -15,25 +20,51 @@ const PRIMARY = '#1E88E5';
 
 export default function MasterKategoriCreate({ navigation, route }) {
   const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
+  const [code, setCode] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const canSave = name.trim().length > 0;
+  const { getApiConfig, companyId } = useAuth();
+  const codeRef = useRef(null);
 
-  const handleSave = () => {
+  const canSave = name.trim().length > 0 && code.trim().length > 0;
+
+  const handleSave = async () => {
     if (!canSave) return;
-    route.params?.onSave?.({
-      name: name.trim(),
-      description: description.trim(),
-    });
-    if (Platform.OS === 'android') {
-      ToastAndroid.show('Kategori berhasil ditambahkan', ToastAndroid.SHORT);
+
+    setLoading(true);
+    try {
+      const payload = {
+        name: name.trim(),
+        code: code.trim(),
+        parentId: null,
+      };
+
+      const response = await BaseApi.post(
+        '/categories',
+        payload,
+        getApiConfig(),
+      );
+
+      if (response.data?.success) {
+        toastSuccess('Kategori berhasil ditambahkan');
+        navigation.goBack();
+      } else {
+        const msg = response.data?.message || 'Gagal menambahkan kategori';
+        toastError(msg);
+      }
+    } catch (error) {
+      console.error('Error creating kategori:', error);
+      const message =
+        error?.response?.data?.message || 'Gagal menambahkan kategori';
+      toastError(message);
+    } finally {
+      setLoading(false);
     }
-    navigation.goBack();
   };
 
   return (
     <AppLayout navigation={navigation} route={route}>
-      <View style={styles.container}>
+      <ScrollView style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity
             onPress={() => navigation.goBack()}
@@ -53,18 +84,19 @@ export default function MasterKategoriCreate({ navigation, route }) {
               value={name}
               onChangeText={setName}
               placeholderTextColor="#94a3b8"
+              returnKeyType="next"
+              onSubmitEditing={() => codeRef.current?.focus()}
             />
           </View>
 
           <View style={styles.field}>
-            <Text style={styles.label}>Deskripsi</Text>
+            <Text style={styles.label}>Kode</Text>
             <TextInput
-              style={[styles.input, styles.textArea]}
-              placeholder="Deskripsi kategori (opsional)"
-              value={description}
-              onChangeText={setDescription}
-              multiline
-              numberOfLines={3}
+              ref={codeRef}
+              style={styles.input}
+              placeholder="Masukkan kode kategori"
+              value={code}
+              onChangeText={setCode}
               placeholderTextColor="#94a3b8"
             />
           </View>
@@ -73,6 +105,7 @@ export default function MasterKategoriCreate({ navigation, route }) {
             <TouchableOpacity
               style={[styles.btn, styles.btnCancel]}
               onPress={() => navigation.goBack()}
+              disabled={loading}
             >
               <Text style={styles.btnCancelText}>Batal</Text>
             </TouchableOpacity>
@@ -80,16 +113,20 @@ export default function MasterKategoriCreate({ navigation, route }) {
               style={[
                 styles.btn,
                 styles.btnSave,
-                !canSave && styles.btnDisabled,
+                (!canSave || loading) && styles.btnDisabled,
               ]}
               onPress={handleSave}
-              disabled={!canSave}
+              disabled={!canSave || loading}
             >
-              <Text style={styles.btnSaveText}>Simpan</Text>
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.btnSaveText}>Simpan</Text>
+              )}
             </TouchableOpacity>
           </View>
         </View>
-      </View>
+      </ScrollView>
     </AppLayout>
   );
 }

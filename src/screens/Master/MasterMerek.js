@@ -12,11 +12,11 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import AppLayout from '../../components/AppLayout';
 import BaseApi from '../../api/BaseApi';
 import { useAuth } from '../../context/AuthContext';
-import { toastError, toastSuccess } from '../../utils/toast';
+import { toastError } from '../../utils/toast';
 import ButtonBack from '../../components/ButtonBack';
 
 export default function MasterMerek({ navigation, route }) {
-  const { getApiConfig, companyId } = useAuth();
+  const { getApiConfig } = useAuth();
   const [merekList, setMerekList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -24,18 +24,13 @@ export default function MasterMerek({ navigation, route }) {
   useFocusEffect(
     useCallback(() => {
       fetchMerek();
-    }, [companyId]),
+    }, []),
   );
 
   const fetchMerek = async () => {
     try {
       setLoading(true);
-      const response = await BaseApi.get(
-        `/brands`,
-        getApiConfig({
-          params: { company_id: companyId },
-        }),
-      );
+      const response = await BaseApi.get(`/brands`, getApiConfig());
       if (response.data.success) {
         setMerekList(response.data.data || []);
       }
@@ -97,10 +92,7 @@ export default function MasterMerek({ navigation, route }) {
       <View style={styles.container}>
         <View style={styles.header}>
           <ButtonBack onPress={() => navigation.goBack()} type="large" />
-          <View style={styles.headerCenter}>
-            <Text style={styles.pageTitle}>Master Merk</Text>
-            <Text style={styles.pageSubtitle}>Kelola data merk produk</Text>
-          </View>
+          <Text style={styles.pageTitle}>Merk Produk</Text>
           <TouchableOpacity
             style={styles.addBtn}
             onPress={() => navigation.navigate('MasterMerekCreate')}
@@ -145,16 +137,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
-  headerCenter: {
-    flex: 1,
-    marginHorizontal: 12,
-  },
-  pageTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#0f172a',
-    marginBottom: 4,
-  },
+
+  pageTitle: { fontSize: 18, fontWeight: '700', color: '#0f172a' },
   pageSubtitle: {
     fontSize: 13,
     color: '#64748b',

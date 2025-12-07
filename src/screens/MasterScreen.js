@@ -47,18 +47,11 @@ export default function MasterScreen({ navigation, route }) {
       onPress: () => navigation.navigate('MasterPelanggan'),
     },
     {
-      id: '3',
-      title: 'Pemasok',
-      icon: 'truck-delivery',
-      color: '#FF9800',
-      onPress: () => navigation.navigate('MasterPemasok'),
-    },
-    {
-      id: '6',
-      title: 'Jenis Pembayaran',
-      icon: 'credit-card-multiple',
-      color: '#F44336',
-      onPress: () => navigation.navigate('MasterPayment'),
+      id: '10',
+      title: 'Outlet',
+      icon: 'storefront',
+      color: '#3F51B5',
+      onPress: () => navigation.navigate('MasterOutlet'),
     },
     {
       id: '8',
@@ -73,6 +66,20 @@ export default function MasterScreen({ navigation, route }) {
       icon: 'package-multiple',
       color: '#7CB342',
       onPress: () => navigation.navigate('MasterStok'),
+    },
+    {
+      id: '3',
+      title: 'Pemasok',
+      icon: 'truck-delivery',
+      color: '#FF9800',
+      onPress: () => navigation.navigate('MasterPemasok'),
+    },
+    {
+      id: '6',
+      title: 'Jenis Pembayaran',
+      icon: 'credit-card-multiple',
+      color: '#F44336',
+      onPress: () => navigation.navigate('MasterPayment'),
     },
   ];
 

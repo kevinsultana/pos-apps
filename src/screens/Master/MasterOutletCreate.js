@@ -7,43 +7,65 @@ import {
   TouchableOpacity,
   ToastAndroid,
   Platform,
+  ScrollView,
 } from 'react-native';
 import AppLayout from '../../components/AppLayout';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import BaseApi from '../../api/BaseApi';
+import { useAuth } from '../../context/AuthContext';
+import { toastError, toastSuccess } from '../../utils/toast';
+import { ActivityIndicator } from 'react-native';
 
 const PRIMARY = '#1E88E5';
 
-export default function MasterKategoriEdit({ navigation, route }) {
-  const { category, onUpdate, onDelete } = route.params;
-  const [name, setName] = useState(category.name);
-  const [description, setDescription] = useState(category.description);
+export default function MasterOutletCreate({ navigation, route }) {
+  const { getApiConfig, companyId } = useAuth();
+  const [name, setName] = useState('');
+  const [code, setCode] = useState('');
+  const [address, setAddress] = useState('');
+  const [phone, setPhone] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const canSave = name.trim().length > 0;
+  const canSave = name.trim().length > 0 && code.trim().length > 0;
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!canSave) return;
-    onUpdate?.({
-      ...category,
-      name: name.trim(),
-      description: description.trim(),
-    });
-    if (Platform.OS === 'android') {
-      ToastAndroid.show('Kategori berhasil diperbarui', ToastAndroid.SHORT);
-    }
-    navigation.goBack();
-  };
 
-  const handleDelete = () => {
-    onDelete?.(category.id);
-    if (Platform.OS === 'android') {
-      ToastAndroid.show('Kategori berhasil dihapus', ToastAndroid.SHORT);
+    setLoading(true);
+    try {
+      const payload = {
+        company_id: companyId,
+        name: name.trim(),
+        code: code.trim(),
+        address: address.trim() || null,
+        phone: phone.trim() || null,
+      };
+
+      const response = await BaseApi.post('/outlets', payload, getApiConfig());
+
+      if (response.data?.success) {
+        toastSuccess('Outlet berhasil ditambahkan');
+        // prefer server returned item, fallback to payload
+        const newItem = response.data.data || payload;
+        route.params?.onSave?.(newItem);
+        navigation.goBack();
+      } else {
+        const msg = response.data?.message || 'Gagal menambahkan outlet';
+        toastError(msg);
+      }
+    } catch (error) {
+      console.error('Error creating outlet:', error);
+      const message =
+        error?.response?.data?.message || 'Gagal menambahkan outlet';
+      toastError(message);
+    } finally {
+      setLoading(false);
     }
-    navigation.goBack();
   };
 
   return (
     <AppLayout navigation={navigation} route={route}>
-      <View style={styles.container}>
+      <ScrollView style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity
             onPress={() => navigation.goBack()}
@@ -51,15 +73,15 @@ export default function MasterKategoriEdit({ navigation, route }) {
           >
             <Icon name="arrow-left" size={24} color="#0f172a" />
           </TouchableOpacity>
-          <Text style={styles.title}>Edit Kategori</Text>
+          <Text style={styles.title}>Tambah Outlet</Text>
         </View>
 
         <View style={styles.card}>
           <View style={styles.field}>
-            <Text style={styles.label}>Nama Kategori</Text>
+            <Text style={styles.label}>Nama Outlet</Text>
             <TextInput
               style={styles.input}
-              placeholder="Masukkan nama kategori"
+              placeholder="Masukkan nama outlet"
               value={name}
               onChangeText={setName}
               placeholderTextColor="#94a3b8"
@@ -67,15 +89,38 @@ export default function MasterKategoriEdit({ navigation, route }) {
           </View>
 
           <View style={styles.field}>
-            <Text style={styles.label}>Deskripsi</Text>
+            <Text style={styles.label}>Kode Outlet</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Masukkan kode outlet"
+              value={code}
+              onChangeText={setCode}
+              placeholderTextColor="#94a3b8"
+            />
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Alamat</Text>
             <TextInput
               style={[styles.input, styles.textArea]}
-              placeholder="Deskripsi kategori (opsional)"
-              value={description}
-              onChangeText={setDescription}
+              placeholder="Alamat outlet (opsional)"
+              value={address}
+              onChangeText={setAddress}
               multiline
               numberOfLines={3}
               placeholderTextColor="#94a3b8"
+            />
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Telepon</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Nomor telepon outlet (opsional)"
+              value={phone}
+              onChangeText={setPhone}
+              placeholderTextColor="#94a3b8"
+              keyboardType="phone-pad"
             />
           </View>
 
@@ -98,13 +143,8 @@ export default function MasterKategoriEdit({ navigation, route }) {
               <Text style={styles.btnSaveText}>Simpan</Text>
             </TouchableOpacity>
           </View>
-
-          <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete}>
-            <Icon name="trash-can" size={18} color="#fff" />
-            <Text style={styles.deleteText}>Hapus Kategori</Text>
-          </TouchableOpacity>
         </View>
-      </View>
+      </ScrollView>
     </AppLayout>
   );
 }
@@ -150,15 +190,4 @@ const styles = StyleSheet.create({
   btnSave: { backgroundColor: PRIMARY },
   btnSaveText: { color: '#fff', fontWeight: '600', fontSize: 14 },
   btnDisabled: { backgroundColor: '#cbd5e1' },
-  deleteBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#ef4444',
-    height: 44,
-    borderRadius: 8,
-    gap: 8,
-    marginTop: 16,
-  },
-  deleteText: { color: '#fff', fontWeight: '600', fontSize: 14 },
 });

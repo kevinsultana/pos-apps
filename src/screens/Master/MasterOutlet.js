@@ -17,29 +17,29 @@ import { toastError } from '../../utils/toast';
 
 const PRIMARY = '#1E88E5';
 
-export default function MasterKategori({ navigation, route }) {
+export default function MasterOutlet({ navigation, route }) {
   const { getApiConfig, companyId } = useAuth();
-  const [categories, setCategories] = useState([]);
+  const [outlets, setOutlets] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
-      fetchCategories();
+      fetchOutlets();
     }, [companyId]),
   );
 
-  const fetchCategories = async () => {
+  const fetchOutlets = async () => {
     try {
       setLoading(true);
-      const response = await BaseApi.get('/categories', getApiConfig());
+      const response = await BaseApi.get('/outlets', getApiConfig());
 
       if (response.data?.success) {
-        setCategories(response.data.data || []);
+        setOutlets(response.data.data || []);
       }
     } catch (error) {
-      console.error('Error fetching categories:', error);
-      toastError('Gagal memuat data kategori');
+      console.error('Error fetching outlets:', error);
+      toastError('Gagal memuat data outlet');
     } finally {
       setLoading(false);
     }
@@ -47,25 +47,25 @@ export default function MasterKategori({ navigation, route }) {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await fetchCategories();
+    await fetchOutlets();
     setRefreshing(false);
   };
 
-  const addCategory = payload => {
-    const id = `KAT-${String(categories.length + 1).padStart(3, '0')}`;
-    setCategories(prev => [...prev, { id, ...payload }]);
+  const addOutlet = payload => {
+    const id = `OUT-${String(outlets.length + 1).padStart(3, '0')}`;
+    setOutlets(prev => [...prev, { id, ...payload }]);
   };
 
   const renderItem = ({ item }) => (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
-        <View style={[styles.thumb, { backgroundColor: '#f3e5f5' }]}>
-          <Icon name="tag-multiple" size={20} color="#9C27B0" />
+        <View style={[styles.thumb, { backgroundColor: '#e3f2fd' }]}>
+          <Icon name="storefront" size={20} color="#1565C0" />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={styles.name}>{item.name}</Text>
           <Text style={styles.desc} numberOfLines={1}>
-            {item.code}
+            {item.address}
           </Text>
         </View>
       </View>
@@ -77,26 +77,26 @@ export default function MasterKategori({ navigation, route }) {
       <View style={styles.container}>
         <View style={styles.headerRow}>
           <ButtonBack onPress={() => navigation.goBack()} type="large" />
-          <Text style={styles.title}>Kategori Produk</Text>
+          <Text style={styles.title}>Outlet</Text>
           <TouchableOpacity
             style={styles.addBtn}
             onPress={() =>
-              navigation.navigate('MasterKategoriCreate', {
-                onSave: addCategory,
+              navigation.navigate('MasterOutletCreate', {
+                onSave: addOutlet,
               })
             }
           >
-            <Icon name="tag-plus" size={20} color="#fff" />
+            <Icon name="plus" size={20} color="#fff" />
           </TouchableOpacity>
         </View>
 
-        {loading && categories.length === 0 ? (
+        {loading && outlets.length === 0 ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={PRIMARY} />
           </View>
         ) : (
           <FlatList
-            data={categories}
+            data={outlets}
             keyExtractor={item => String(item.id)}
             renderItem={renderItem}
             contentContainerStyle={styles.listContent}
@@ -105,10 +105,10 @@ export default function MasterKategori({ navigation, route }) {
             ListEmptyComponent={
               !loading ? (
                 <View style={styles.emptyContainer}>
-                  <Icon name="inbox-outline" size={64} color="#cbd5e1" />
-                  <Text style={styles.emptyText}>Tidak ada data kategori</Text>
+                  <Icon name="store" size={64} color="#cbd5e1" />
+                  <Text style={styles.emptyText}>Tidak ada data outlet</Text>
                   <Text style={styles.emptySubtext}>
-                    Tap tombol + untuk menambah kategori baru
+                    Tap tombol + untuk menambah outlet baru
                   </Text>
                 </View>
               ) : null
@@ -163,8 +163,6 @@ const styles = StyleSheet.create({
   },
   name: { fontSize: 16, fontWeight: '700', color: '#0f172a' },
   desc: { color: '#64748b', fontSize: 12, marginTop: 4 },
-  actions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  iconBtn: { padding: 6 },
   emptyContainer: {
     flex: 1,
     alignItems: 'center',

@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ToastAndroid,
   Platform,
+  ScrollView,
 } from 'react-native';
 import AppLayout from '../../components/AppLayout';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -30,7 +31,7 @@ export default function MasterSatuanCreate({ navigation, route }) {
 
   return (
     <AppLayout navigation={navigation} route={route}>
-      <View style={styles.container}>
+      <ScrollView style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity
             onPress={() => navigation.goBack()}
@@ -84,7 +85,7 @@ export default function MasterSatuanCreate({ navigation, route }) {
             </TouchableOpacity>
           </View>
         </View>
-      </View>
+      </ScrollView>
     </AppLayout>
   );
 }

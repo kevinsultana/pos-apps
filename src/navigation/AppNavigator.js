@@ -18,7 +18,6 @@ import MasterPemasokCreate from '../screens/Master/MasterPemasokCreate';
 import MasterPemasokEdit from '../screens/Master/MasterPemasokEdit';
 import MasterKategori from '../screens/Master/MasterKategori';
 import MasterKategoriCreate from '../screens/Master/MasterKategoriCreate';
-import MasterKategoriEdit from '../screens/Master/MasterKategoriEdit';
 import MasterSatuan from '../screens/Master/MasterSatuan';
 import MasterSatuanCreate from '../screens/Master/MasterSatuanCreate';
 import MasterSatuanEdit from '../screens/Master/MasterSatuanEdit';
@@ -31,6 +30,8 @@ import MasterGudang from '../screens/Master/MasterGudang';
 import MasterGudangCreate from '../screens/Master/MasterGudangCreate';
 import MasterStok from '../screens/Master/MasterStok';
 import MasterStokCreate from '../screens/Master/MasterStokCreate';
+import MasterOutlet from '../screens/Master/MasterOutlet';
+import MasterOutletCreate from '../screens/Master/MasterOutletCreate';
 import ReportScreen from '../screens/ReportScreen';
 import ReportPenjualan from '../screens/Report/ReportPenjualan';
 import ReportStok from '../screens/Report/ReportStok';
@@ -97,7 +98,6 @@ export default function AppNavigator() {
         name="MasterKategoriCreate"
         component={MasterKategoriCreate}
       />
-      <Stack.Screen name="MasterKategoriEdit" component={MasterKategoriEdit} />
       <Stack.Screen name="MasterSatuan" component={MasterSatuan} />
       <Stack.Screen name="MasterSatuanCreate" component={MasterSatuanCreate} />
       <Stack.Screen name="MasterSatuanEdit" component={MasterSatuanEdit} />
@@ -109,6 +109,8 @@ export default function AppNavigator() {
       <Stack.Screen name="MasterPaymentEdit" component={MasterPaymentEdit} />
       <Stack.Screen name="MasterMerek" component={MasterMerek} />
       <Stack.Screen name="MasterMerekCreate" component={MasterMerekCreate} />
+      <Stack.Screen name="MasterOutlet" component={MasterOutlet} />
+      <Stack.Screen name="MasterOutletCreate" component={MasterOutletCreate} />
       <Stack.Screen name="MasterGudang" component={MasterGudang} />
       <Stack.Screen name="MasterGudangCreate" component={MasterGudangCreate} />
       <Stack.Screen name="MasterStok" component={MasterStok} />
